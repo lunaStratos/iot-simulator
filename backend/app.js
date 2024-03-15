@@ -6,7 +6,7 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var iotRouter = require('./routes/iot');
-var mqttHandler = require('./conn/mqtt-device2');
+var mqttHandler = require('./conn/mqtt-device');
 
 
 var app = express();
