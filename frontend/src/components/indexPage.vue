@@ -36,7 +36,7 @@
                     <div class="w-100"></div>
                     <div class="col bg-light fw-bold">동작모드</div>
                     <div class="col">
-                        <select class="form-select"  v-bind="control.mode" @change="setControl('mode')">
+                        <select class="form-select"  v-bind="control.mode" @change="setControl('mode', $event)">
                             <option value="1">난방</option>
                             <option value="2">절약</option>
                             <option value="3">샤워</option>
@@ -78,7 +78,7 @@
                     <div class="col">
                         <div class="form-switch form-switch-xl">
                             <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" 
-                            v-model="control.switch" true-value="1" false-value="0" @change="setControl('switch')">
+                            v-model="control.switch" true-value="1" false-value="0" @change="setControl('switch', $event)">
                             <label class="form-check-label" for="flexSwitchCheckDefault"></label>
                         </div>
                     </div>
@@ -90,7 +90,6 @@
 </template>
 
 <script>
-import { reactive } from 'vue'
 
 export default {
     data() {
@@ -111,18 +110,24 @@ export default {
             .get('/api/iot/status/1000')
             .then((res) => {
                 const device = res.data.device;
-                // console.log(device);
                 if (device){
                     this.device = device;
                     this.control.switch = device.switch;
+                    this.control.mode = device.mode;
                 }
             })
             .catch((error) => {
                 console.error(error);
         });
       },
-      setControl : function(event){
-        const json = JSON.stringify({ deviceControl: this.control.switch , deviceControlName : event});
+      setControl : function(col, event){
+        let deviceControl =  event.target.value;
+        //switch event handler
+        if(col === "switch"){
+            deviceControl = event.target.checked ? 1 : 0
+        }
+        console.log(deviceControl, col)
+        const json = JSON.stringify({ deviceControl: deviceControl, deviceControlName : col});
         this.$http
             .put('/api/iot/control/1000', json, {
                 headers : {
