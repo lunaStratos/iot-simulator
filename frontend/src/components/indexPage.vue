@@ -28,12 +28,18 @@
                     <div class="col bg-light fw-bold">현재온도</div>
                     <div class="col">{{ device.now_temperature }}°C</div>
                     <div class="w-100"></div>
-                    <div class="col bg-light fw-bold">희망온도</div>
-                    <div class="col">{{ device.hope_temperature }}°C</div>
-                    <div class="w-100"></div>
                     <div class="col bg-light fw-bold">습도</div>
                     <div class="col">{{ device.humidity }}%</div>
                     <div class="w-100"></div>
+                    <div class="col bg-light fw-bold">희망온도</div>
+                    <div class="col">
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" aria-label="hope temperature" v-model="device.hope_temperature">
+                            <span class="input-group-text">°C</span>
+                        </div>
+                    </div>
+                    <div class="w-100"></div>
+                    
                     <div class="col bg-light fw-bold">동작모드</div>
                     <div class="col">
                         <select class="form-select"  v-bind="control.mode" @change="setControl('mode', $event)">

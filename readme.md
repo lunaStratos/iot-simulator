@@ -5,7 +5,24 @@
 
 IoT서버의 client 통신 테스트를 위해서 가상의 IoT 기기를 만들었습니다.
 
+nodejs Express.js + mysql + vue + 
+
 #### 실행 방법
+
+
+```
+./backend/config/database.js
+```
+mysql DB세팅
+
+frontend와 backend의 폴더에서 npm install 실행
+
+```
+cd backend 
+npm install
+cd fronend
+npm install
+```
 
 MAC 
 
@@ -19,6 +36,9 @@ WIN
 ```
 
 ### 사용방법
+
+
+
 
 #### UI
 
@@ -39,7 +59,7 @@ http://localhost:3000
 
 #### MQTT
 
-./backend/conn/mqtt-device.js 파일을 사용함
+./backend/conn/mqtt-device.js 
 port : 1883
 
 Topic address
@@ -47,7 +67,6 @@ Topic address
 ```
 iot/status/1000
 iot/control/1000
-
 ```
 
 #### CoAP
