@@ -7,7 +7,7 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var iotRouter = require('./routes/iot');
 var mqttHandler = require('./conn/mqtt-device');
-
+var coapHandler = require('./conn/coap-device');
 
 var app = express();
 
@@ -26,6 +26,8 @@ app.use('/api/iot', iotRouter);
 
 // MQTT Server Start
 mqttHandler.connect();
+// CoAP Server Start
+coapHandler.connect();
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
