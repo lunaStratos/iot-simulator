@@ -9,8 +9,10 @@
     <div class="container">
         <div class="row">
             <div class="col">
-                <img src = "@/assets/images/boiler.png" />
+                <img v-if="device.switch == 1" src="@/assets/images/boiler.png" />
+                <img v-if="device.switch == 0" src="@/assets/images/boiler_off.png" />
             </div>
+            
             <div class="col">
                 
                 <div class="row">

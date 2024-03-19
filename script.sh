@@ -9,6 +9,7 @@ cd ../
 
 # http express server start
 # with MQTT
+# with CoAP Server
 echo "Start Backend"
 cd ./backend
 npm start
