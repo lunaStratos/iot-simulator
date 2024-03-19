@@ -7,6 +7,10 @@ import axios from 'axios'
 import BootstrapVue from 'bootstrap-vue'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
+import VueGauge from "vue-gauge";
+import { VueSvgGauge } from 'vue-svg-gauge'
+
+
 
 Vue.prototype.$http = axios // vue 컴포넌트에서 this.$http로 요청할 수 있게 된다.
 Vue.config.productionTip = false
@@ -15,7 +19,10 @@ Vue.config.productionTip = false
 new Vue({
   el: '#app',
   router,
-  components: { App },
-  template: '<App/>'
+  components: { App ,},
+  template: '<App/>',
 })
+Vue.component("vue-gauge", VueGauge);
+Vue.component("VueSvgGauge", VueSvgGauge);
+Vue.component("LinearGauge", LinearGauge);
 Vue.use(BootstrapVue)

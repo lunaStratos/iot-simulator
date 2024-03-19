@@ -14,8 +14,13 @@
     "axios": "^0.25.0",
     "bootstrap": "^5.3.3",
     "bootstrap-vue": "^2.23.1",
+    "stylus-loader": "^3.0.2",
+    "vgauge": "^1.2.12-rc3",
     "vue": "^2.5.2",
-    "vue-router": "^3.0.1"
+    "vue-canvas-gauges": "^0.0.0",
+    "vue-gauge": "^1.0.3",
+    "vue-router": "^3.0.1",
+    "vue-svg-gauge": "^1.2.1"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",

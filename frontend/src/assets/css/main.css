@@ -27,3 +27,18 @@ div.container {
   color : white;
   text-align: center;
 }
+
+
+
+.inner-text {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 110%;
+  width: 100%;
+  font-size: x-large;
+}
+
+.input-group > input.someInput {
+  flex: 0 1 100px;
+}

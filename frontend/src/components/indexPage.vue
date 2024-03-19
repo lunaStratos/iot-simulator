@@ -30,14 +30,44 @@
                     <div class="w-100"></div>
                     <div class="col bg-light fw-bold">습도</div>
                     <div class="col">{{ device.humidity }}%</div>
-                    <div class="w-100"></div>
+                    <div class="h-200"></div>
                     <div class="col bg-light fw-bold">희망온도</div>
                     <div class="col">
+                        <div style="height: 100px">
+                            <VueSvgGauge class="h-100 d-inline-block"
+                            :start-angle="-90"
+                            :end-angle="90"
+                            :value=device.hope_temperature
+                            :separator-step="2"
+                            :separator-thickness="2"
+                            :min="10"
+                            :max="40"
+                            :gauge-color="[
+                                { offset: 30, color: '#2FA325' },
+                                { offset: 60, color: '#F0A815' },
+                                { offset: 100, color: '#BC1E58' },
+                            ]"                            
+                            :scale-interval="1">
+                            <div class="inner-text">
+                                <p>{{ device.hope_temperature }}</p>
+                            </div>
+                            </VueSvgGauge>
+                        </div>
+                        <!-- 희망온도 -->
+                        
+                    
                         <div class="input-group mb-3">
-                            <input type="text" class="form-control" aria-label="hope temperature" v-model="device.hope_temperature">
+                            <input type="text" class="form-control someInput" aria-label="hope temperature" v-model="control.hope_temperature">
                             <span class="input-group-text">°C</span>
                         </div>
+                        <div class="input-group mb-3">
+                            <button type="button" class="btn btn-secondary btn-sm" @click="setControl('hope_temperature', $event)">조절하기</button>
+                        </div>
+
                     </div>
+                    <div class="w-100"></div>
+                    <div class="col bg-light fw-bold"></div>
+                    <div class="col"></div>
                     <div class="w-100"></div>
                     
                     <div class="col bg-light fw-bold">동작모드</div>
@@ -93,20 +123,42 @@
         </div>
         
     </div>
+
 </template>
 
 <script>
+
 
 export default {
     data() {
         return {
             device: {},
-            control : {switch: 0, mode : 1}
+            control : {
+                switch: 0, mode : 1 , hope_temperature: 25
+            }
+            ,
+            options: {
+                width: 150,
+                height: 400,
+                title: "В аквариуме",
+                minValue: 20,
+                maxValue: 35,
+                majorTicks: [20, 25, 30, 35],
+                units: "°C",
+                highlights: [
+                { from: 20, to: 24, color: "#3ac1ff" },
+                { from: 24, to: 26, color: "#77ff6b" },
+                { from: 26, to: 35, color: "#ff3a3a" },
+                ],
+                borders: false,
+                borderRadius: 10,
+                borderShadowWidth: 0,
+                colorNeedle: "#0400ff",
+                valueInt: 1,
+            },
         };
     },
-    created() {
-        
-        },
+    created() {},
     methods : {
       checkArr : function() {
         console.log(this.control);
@@ -127,10 +179,14 @@ export default {
         });
       },
       setControl : function(col, event){
+        
+        console.log(event, col, this.control)
         let deviceControl =  event.target.value;
         //switch event handler
         if(col === "switch"){
             deviceControl = event.target.checked ? 1 : 0
+        }else if(col === "hope_temperature"){
+            deviceControl = this.control.hope_temperature
         }
         console.log(deviceControl, col)
         const json = JSON.stringify({ deviceControl: deviceControl, deviceControlName : col});
@@ -151,6 +207,7 @@ export default {
     },
     mounted(){
         this.loading = setInterval(this.getStatus, 3000)
-    }
-    }
+    },
+    
+}
 </script>
