@@ -8,6 +8,7 @@ var indexRouter = require('./routes/index');
 var iotRouter = require('./routes/iot');
 var mqttHandler = require('./conn/mqtt-device');
 var coapHandler = require('./conn/coap-device');
+var lwM2MHandler = require('./conn/lwm2m-device');
 
 var app = express();
 
@@ -28,6 +29,8 @@ app.use('/api/iot', iotRouter);
 mqttHandler.connect();
 // CoAP Server Start
 coapHandler.connect();
+// lwM2M Server Start
+lwM2MHandler.connect();
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

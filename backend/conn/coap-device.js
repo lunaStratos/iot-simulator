@@ -5,12 +5,11 @@ const conn = mysql.init();
 module.exports = {
     
   connect() {
-    var portNumber=5683;
+    var portNumber = 5683;
     coap.createServer(function (req,res) {
         console.log('CoAP device got a request from %s', req.url);
         console.log('CoAp req %s', req);
-        console.log('CoAp req %s', req.payload);
-        console.log('CoAp req %s', req.bodys);
+        console.log('CoAp req.payload %s', req.payload);
 
         switch(req.url) {
             case "/iot/status/1000":

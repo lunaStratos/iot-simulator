@@ -12,6 +12,8 @@
     "debug": "~2.6.9",
     "express": "~4.16.1",
     "http-errors": "~1.6.3",
+    "lwm2m": "0.13.0",
+    "lwm2m-node-lib": "1.4.0",
     "morgan": "~1.9.1",
     "mqtt": "5.5.0",
     "mysql": "^2.18.1",

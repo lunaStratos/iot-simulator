@@ -1,25 +1,14 @@
-const coap = require('coap')
-const server = coap.createServer()
-
-server.on('request', (req, res) => {
-  res.end('Hello ' + req.url.split('/')[1] + '\n')
-})
-
-// the default CoAP port is 5683
-server.listen(() => {
-  const req = coap.request('coap://localhost:5683')
-
-  req.on('response', (res) => {
-    res.pipe(process.stdout)
-    res.on('end', () => {
-      process.exit(0)
+var server = require('lwm2m').createServer();
+ 
+server.on('register', function(params, accept) {
+  setImmediate(function() {
+    server
+    .read(params.ep, '3/0')
+    .then(function(device) {
+      console.log(JSON.stringify(device, null, 4));
     })
-  })
-
-  req.end()
-})
-
-/**
- * 
- * https://saii42.tistory.com/52
- */
+  });
+  accept();
+});
+ 
+server.listen(5683);
