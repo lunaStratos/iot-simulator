@@ -11,6 +11,8 @@
             <div class="col">
                 <img v-if="device.switch == 1" src="@/assets/images/boiler.png" />
                 <img v-if="device.switch == 0" src="@/assets/images/boiler_off.png" />
+                <img v-if="device.switch == 1" src="@/assets/images/fire.gif" style="max-width: 360px;"/>
+                <img v-if="device.switch == 0" src="@/assets/images/fireoff.png" style="max-width: 360px;"/>
             </div>
             
             <div class="col">
