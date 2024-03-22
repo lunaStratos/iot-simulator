@@ -1,0 +1,131 @@
+@import "compass/css3";
+
+// Colors
+$red: #e74c3c;
+$green: #2ecc71;
+$black: #333333;
+$grey: #555555;
+$yellow: #f1c40f;
+$lightgrey: #888888;
+$background: #2c3e50;
+$color-rank: darken($background, 10);
+
+// Ranks
+$nbRank: 100;
+$w-rank: 5px;
+$h-rank: 1px;
+
+// Light bulb
+$base-size-lb: 80px;
+
+body {
+  background-color: $background;
+  text-align: center;
+} 
+
+.indicator {
+  font-size: 100px;
+  vertical-align: top;
+  &.minus {
+    color: $red;
+    margin-right: 30px;
+  }
+  &.plus {
+    color: $green;
+    font-weight: bold;
+    margin-left: 30px;
+  }
+}
+
+.wrapper {
+  min-width: 700px;
+  font-size: 0; 
+  margin-top: 40px;
+  display: inline-block;
+  user-select: none;
+}
+
+label {
+  display: inline-block;
+  position: relative;
+  width: $w-rank;
+  opacity: 1;
+  cursor: pointer;
+  background-color: $color-rank;
+  &:before {
+    content: '';
+    position: absolute;
+    top: -$h-rank;
+    left: 0;
+    border-style: solid;
+    border-width: 0 0px $h-rank $w-rank;
+    border-color: transparent transparent $color-rank transparent;
+  }
+  @for $i from 1 through $nbRank {
+    &.label-rank-#{$i} { 
+      height: $h-rank * $i;
+    }
+  }
+}
+
+.light-bulb {
+  position: relative;
+  margin-top: 150px;
+  text-align: center;
+  .base {
+    display: inline-block;
+    position: relative;
+    .bulb {
+      position: relative;
+      z-index: 1;
+      width: $base-size-lb*4;
+      height: $base-size-lb*4;
+      border: 3px solid #d0d0d0;
+      background-color: lighten($yellow,25);
+      box-shadow: 0 0 50px lighten($yellow,25);
+      border-radius: 100%;
+      transition: all .6s;
+    }
+    .content {
+      position: relative;
+      z-index: 2;
+      width: $base-size-lb*2;
+      height: $base-size-lb;
+      border-radius: $base-size-lb/10;
+      background-color: $grey;
+      margin: -25px auto 0;
+      .line {
+        width: $base-size-lb*2.2;
+        height: $base-size-lb/5.5;
+        margin-bottom: $base-size-lb/6.5;
+        margin-left: -(($base-size-lb*2.2 - $base-size-lb*2))/2;
+        border-radius: 20px;
+        background-color: $lightgrey;
+      }
+    }
+    .footer {
+      position: relative;
+      z-index: 1;
+      width: $base-size-lb;
+      height: $base-size-lb/1.5;
+      margin-top: -($base-size-lb/1.5)/2;
+      margin-left: auto;
+      margin-right: auto;
+      border-radius: 100%;
+      background-color: $black;
+    }
+  }
+}
+
+input {
+  display: none;
+  &:checked ~ label {
+    opacity: 0.5;
+  }
+  @for $i from 1 through $nbRank {
+    &.rank-#{$i}:checked ~ .light-bulb .base .bulb {
+       box-shadow: 0 0 2px * $i lighten($yellow,0.5 * $i);
+       background-color: lighten($yellow,0.5 * $i);
+    }
+  }
+}

@@ -30,12 +30,15 @@ module.exports = {
     // Send
     function displayOutput (res,content) {
 
-      var sql = 'SELECT * FROM iot_boiler WHERE id = 1000';
-      conn.query(sql, [], function (err, rows, fields) {
+      var sql = `select * , (select concat('{' ,group_concat('"',name,'"',':' ,'"',val,'"' ),'}') from iot_device_value) as json from iot_device where id = ?`
+    
+      conn.query(sql, [adr], function (err, rows, fields) {
           if(err) console.log('query is not excuted. select fail...\n' + err);
-          console.log("Sending measurement: " + rows[0] + "º");
-          res.setOption('Content-Format','application/json');
-          res.end (JSON.stringify(rows[0]));
+          else{
+              rows[0].json = JSON.parse(rows[0].json)
+              res.setOption('Content-Format','application/json');
+              res.end(JSON.stringify({ device: rows[0] }));
+          }
       });
 
     }
@@ -51,17 +54,21 @@ module.exports = {
 
 
       console.log("deviceId", deviceId)
-      console.log("deivceControl", deviceControl)
-      console.log("deivceControlName", deviceControlName)
+      console.log("deviceControl", deviceControl)
+      console.log("deviceControlName", deviceControlName)
       
       res.setOption('Content-Format','application/json');
 
-      var sql = `UPDATE iot_boiler SET ${deviceControlName}  = ? WHERE id = ?`;
-      conn.query(sql, [deviceControl, deviceId], function (err, rows, fields) {
-          if(err) console.log('query is not excuted. select fail...\n' + err);
-          res.end (JSON.stringify({"status" : "ok"}));
+      var sql = 'UPDATE iot_device_value SET val = ? WHERE name = ? AND id = ?';
+      conn.query(sql, [deviceControl, deviceControlName , deviceId], function (err, rows, fields) {
+          if(err) {
+              console.log('query is not excuted. select fail...\n' + err);
+              res.json({status : "error"});
+          }else{
+            res.setOption('Content-Format','application/json'); 
+            res.end(JSON.stringify({"status" : "ok"}));
+          }
       });
-     
       
     }
     

@@ -30,12 +30,15 @@ module.exports = {
 
             // send a temperature measurement every 3 seconds
             setInterval(function() {
-              
-                var sql = 'SELECT * FROM iot_boiler WHERE id = 1000';
+              const adr = "1000"
+              var sql = `select * , (select concat('{' ,group_concat('"',name,'"',':' ,'"',val,'"' ),'}') from iot_device_value where id = ${adr}) as json from iot_device where id = ${adr}`
+    
                 conn.query(sql, [], function (err, rows, fields) {
                     if(err) console.log('query is not excuted. select fail...\n' + err);
-                    console.log("Sending temperature measurement: " + rows[0] + "º");
-                    client.publish("iot/status/1000", "" + rows[0].now_temperature);
+                    else{
+                        rows[0].json = JSON.parse(rows[0].json)
+                        client.publish("iot/status/1000", "" + rows[0].json.now_temperature);                        
+                    }
                 });
             }, 3000);
         });
@@ -48,18 +51,21 @@ module.exports = {
 
         const json = JSON.parse(message);
         const deviceId = json.deviceId;
-        const deivceControl = json.deivceControl;
-        const deivceControlName = json.deivceControlName;
+        const deviceControl = json.deviceControl;
+        const deviceControlName = json.deviceControlName;
 
         console.log("deviceId", deviceId)
-        console.log("deivceControl", deivceControl)
-        console.log("deivceControlName", deivceControlName)
+        console.log("deviceControl", deviceControl)
+        console.log("deviceControlName", deviceControlName)
         
-        var sql = `UPDATE iot_boiler SET ${deivceControlName}  = ? WHERE id = ?`;
-        conn.query(sql, [deivceControl, deviceId], function (err, rows, fields) {
-            if(err) console.log('query is not excuted. select fail...\n' + err);
-            client.publish("iot/status/1000", "ok");
-        });
+        var sql = 'UPDATE iot_device_value SET val = ? WHERE name = ? AND id = ?';
+    conn.query(sql, [deviceControl, deviceControlName , deviceId], function (err, rows, fields) {
+        if(err) {
+            console.log('query is not excuted. select fail...\n' + err);
+            client.publish("iot/status/1000", "error");
+        }else client.publish("iot/status/1000", "ok");
+
+    });
         
       });
 

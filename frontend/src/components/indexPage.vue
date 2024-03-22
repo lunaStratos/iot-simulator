@@ -9,18 +9,18 @@
     <div class="container">
         <div class="row">
             <div class="col">
-                <img v-if="device.switch == 1" src="@/assets/images/boiler.png" />
-                <img v-if="device.switch == 0" src="@/assets/images/boiler_off.png" />
-                <img v-if="device.switch == 1" src="@/assets/images/fire.gif" style="max-width: 360px;"/>
-                <img v-if="device.switch == 0" src="@/assets/images/fireoff.png" style="max-width: 360px;"/>
+                <img v-if="device.json.switch == 1" src="@/assets/images/boiler.png" />
+                <img v-if="device.json.switch == 0" src="@/assets/images/boiler_off.png" />
+                <img v-if="device.json.switch == 1" src="@/assets/images/fire.gif" style="max-width: 360px;"/>
+                <img v-if="device.json.switch == 0" src="@/assets/images/fireoff.png" style="max-width: 360px;"/>
             </div>
             
             <div class="col">
                 
                 <div class="row">
-                    <div class="col switch" :class="{'bg-success' : device.switch === 1, 'bg-danger' : device.switch ===0}">
+                    <div class="col switch" :class="{'bg-success' : device.json.switch === 1, 'bg-danger' : device.json.switch ===0}">
                         <!-- if work : success color, or fail color-->
-                       {{ device.switch === 1 ? "ON" : "OFF"  }}
+                       {{ device.json.switch === 1 ? "ON" : "OFF"  }}
                     </div>
                     <div class="w-100"></div>
                     <div class="col bg-light fw-bold">IoT이름</div>
@@ -30,10 +30,10 @@
                     <div class="col">{{ device.firmware }}</div>
                     <div class="w-100"></div>
                     <div class="col bg-light fw-bold">현재온도</div>
-                    <div class="col">{{ device.now_temperature }}°C</div>
+                    <div class="col">{{ device.json.now_temperature }}°C</div>
                     <div class="w-100"></div>
                     <div class="col bg-light fw-bold">습도</div>
-                    <div class="col">{{ device.humidity }}%</div>
+                    <div class="col">{{ device.json.humidity }}%</div>
                     <div class="h-200"></div>
                     <div class="col bg-light fw-bold">희망온도</div>
                     <div class="col">
@@ -41,7 +41,7 @@
                             <VueSvgGauge class="h-100 d-inline-block"
                             :start-angle="-90"
                             :end-angle="90"
-                            :value=device.hope_temperature
+                            :value=device.json.hope_temperature
                             :separator-step="2"
                             :separator-thickness="2"
                             :min="10"
@@ -53,7 +53,7 @@
                             ]"                            
                             :scale-interval="1">
                             <div class="inner-text">
-                                <p>{{ device.hope_temperature }}</p>
+                                <p>{{ device.json.hope_temperature }}</p>
                             </div>
                             </VueSvgGauge>
                         </div>
@@ -84,32 +84,32 @@
                             <option value="5">외출</option>
                             <option value="6">고온</option>
                         </select>
-                        <template v-if="device.mode == 1" >
+                        <template v-if="device.json.mode == 1" >
                             <img src="@/assets/images/general.png" class="img-thumbnail"/>
                         </template>
-                        <template v-if="device.mode == 2" >
+                        <template v-if="device.json.mode == 2" >
                             <img src="@/assets/images/save.png" class="img-thumbnail"/>
                         </template>
-                        <template v-if="device.mode == 3" >
+                        <template v-if="device.json.mode == 3" >
                             <img src="@/assets/images/shower.png" class="img-thumbnail"/>
                         </template>
-                        <template v-if="device.mode == 4" >
+                        <template v-if="device.json.mode == 4" >
                             <img src="@/assets/images/ondol.jpg" class="img-thumbnail"/>
                         </template>
-                        <template v-if="device.mode == 5" >
+                        <template v-if="device.json.mode == 5" >
                             <img src="@/assets/images/out.png" class="img-thumbnail" />
                         </template>
-                        <template v-if="device.mode == 6" >
+                        <template v-if="device.json.mode == 6" >
                             <img src="@/assets/images/hotwater.png" class="img-thumbnail"/>
                         </template>
                     </div>
                     <div class="w-100"></div>
                     <div class="col bg-light fw-bold">상태</div>
                     <div class="col">
-                        <template v-if="device.status == 'normal'">
+                        <template v-if="device.json.status == 'normal'">
                             정상
                         </template>
-                        <template v-if="device.status == 'error'">
+                        <template v-if="device.json.status == 'error'">
                             이상
                         </template>
                     </div>
@@ -174,8 +174,8 @@ export default {
                 const device = res.data.device;
                 if (device){
                     this.device = device;
-                    this.control.switch = device.switch;
-                    this.control.mode = device.mode;
+                    this.control.switch = device.json.switch;
+                    this.control.mode = device.json.mode;
                 }
             })
             .catch((error) => {

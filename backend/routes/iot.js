@@ -9,38 +9,43 @@ mysql.db_open(conn);
  */
 
 
-
 router.get('/status/:deviceId', function(req, res, next) {
     const adr = req.params.deviceId;
-    console.log(adr)
-    var sql = 'SELECT * FROM iot_boiler WHERE id = ?';
-    conn.query(sql, [adr], function (err, rows, fields) {
+    console.log("adr", adr)
+    var sql = `select * , (select concat('{' ,group_concat('"',name,'"',':' ,'"',val,'"' ),'}') from iot_device_value where id = ${adr}) as json from iot_device where id = ${adr}`
+    
+    conn.query(sql, [], function (err, rows, fields) {
         if(err) console.log('query is not excuted. select fail...\n' + err);
-        else res.json({ device: rows[0] });
+        else{
+            rows[0].json = JSON.parse(rows[0].json)
+            res.json({ device: rows[0] });
+        }
     });
 });
 
 
 
 /**
- * deivceControlName : switch, hope_temperature, mode
+ * deviceControlName : switch, hope_temperature, mode
  * method : put
  */
 router.put('/control/:deviceId', (req, res, next) =>{
     console.log("body", req.body)
     
     const deviceId = req.params.deviceId;
-    const deivceControl = req.body.deviceControl
-    const deivceControlName = req.body.deviceControlName;
+    const deviceControl = req.body.deviceControl
+    const deviceControlName = req.body.deviceControlName;
 
     console.log("deviceId", deviceId)
-    console.log("deivceControl", deivceControl)
-    console.log("deivceControlName", deivceControlName)
+    console.log("deviceControl", deviceControl)
+    console.log("deviceControlName", deviceControlName)
     
-    var sql = 'UPDATE iot_boiler SET '+ deivceControlName+' = ? WHERE id = ?';
-    conn.query(sql, [deivceControl, deviceId], function (err, rows, fields) {
-        if(err) console.log('query is not excuted. select fail...\n' + err);
-        else res.json({status : "ok"});
+    var sql = 'UPDATE iot_device_value SET val = ? WHERE name = ? AND id = ?';
+    conn.query(sql, [deviceControl, deviceControlName , deviceId], function (err, rows, fields) {
+        if(err) {
+            console.log('query is not excuted. select fail...\n' + err);
+            res.json({status : "error"});
+        }else res.json({status : "ok"});
     });
 
 })

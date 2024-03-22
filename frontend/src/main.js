@@ -7,7 +7,6 @@ import axios from 'axios'
 import BootstrapVue from 'bootstrap-vue'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
-import VueGauge from "vue-gauge";
 import { VueSvgGauge } from 'vue-svg-gauge'
 
 
@@ -21,8 +20,8 @@ new Vue({
   router,
   components: { App ,},
   template: '<App/>',
+  render: (h) => h(App)
 })
-Vue.component("vue-gauge", VueGauge);
+
 Vue.component("VueSvgGauge", VueSvgGauge);
-Vue.component("LinearGauge", LinearGauge);
 Vue.use(BootstrapVue)
