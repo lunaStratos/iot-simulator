@@ -11,12 +11,14 @@ module.exports = {
         console.log('CoAp req %s', req);
         console.log('CoAp req.payload %s', req.payload);
 
+        const deviceId = req.url.substring(req.url.lastIndexOf('/') + 1);
+
         switch(req.url) {
-            case "/iot/status/1000":
-              displayOutput(res, {'deviceId': 1000});
+            case "/iot/status/" + deviceId:
+              displayOutput(res, {'deviceId': deviceId});
             break;
-            case "/iot/control/1000":
-              controlProcess(res, req, "1000")
+            case "/iot/control/" + deviceId:
+              controlProcess(res, req, deviceId)
             break;
   
             default:
@@ -28,8 +30,10 @@ module.exports = {
     console.log(`CoAP Server is started at port Number ${portNumber}`);
     
     // Send
-    function displayOutput (res,content) {
+    function displayOutput (res, content) {
 
+      const adr = content.deviceId;
+    
       var sql = `select * , (select concat('{' ,group_concat('"',name,'"',':' ,'"',val,'"' ),'}') from iot_device_value) as json from iot_device where id = ?`
     
       conn.query(sql, [adr], function (err, rows, fields) {
@@ -49,6 +53,8 @@ module.exports = {
       const deviceId = ids;
 
       const payloadJson = JSON.parse(req.payload) //payload에온다 
+
+      console.log(payloadJson)
       const deviceControl = payloadJson.deviceControl
       const deviceControlName = payloadJson.deviceControlName;
 

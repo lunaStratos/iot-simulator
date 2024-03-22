@@ -11,6 +11,7 @@ var iotRouter = require('./routes/iot');
 var mqttHandler = require('./conn/mqtt-device');
 var coapHandler = require('./conn/coap-device');
 var lwM2MHandler = require('./conn/lwm2m-device');
+var batch = require('./config/batch');
 
 var app = express();
 
@@ -36,6 +37,8 @@ mqttHandler.connect();
 coapHandler.connect();
 // lwM2M Server Start
 lwM2MHandler.connect();
+
+batch.batchStart();
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

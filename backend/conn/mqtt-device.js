@@ -37,7 +37,7 @@ module.exports = {
                     if(err) console.log('query is not excuted. select fail...\n' + err);
                     else{
                         rows[0].json = JSON.parse(rows[0].json)
-                        client.publish("iot/status/1000", "" + rows[0].json.now_temperature);                        
+                        client.publish("iot/status/1000", "" + JSON.stringify(rows[0]));                        
                     }
                 });
             }, 3000);
@@ -59,15 +59,45 @@ module.exports = {
         console.log("deviceControlName", deviceControlName)
         
         var sql = 'UPDATE iot_device_value SET val = ? WHERE name = ? AND id = ?';
-    conn.query(sql, [deviceControl, deviceControlName , deviceId], function (err, rows, fields) {
-        if(err) {
-            console.log('query is not excuted. select fail...\n' + err);
-            client.publish("iot/status/1000", "error");
-        }else client.publish("iot/status/1000", "ok");
+        conn.query(sql, [deviceControl, deviceControlName , deviceId], function (err, rows, fields) {
+          if(err) {
+              console.log('query is not excuted. select fail...\n' + err);
+              client.publish("iot/status/" + deviceId, "error");
+          }else client.publish("iot/status/" + deviceId, "ok");
 
-    });
+        });
         
       });
+
+
+
+
+
+
+      // once connected...
+      client.on("connect", function () {
+        // ...register a new device with restart operation
+        client.publish("iot/status/2000", "100," + device_name + ",c8y_MQTTDevice", function() {
+            // listen for operations
+            client.subscribe("iot/control");
+
+            // send a temperature measurement every 3 seconds
+            setInterval(function() {
+              const adr = "2000"
+              var sql = `select * , (select concat('{' ,group_concat('"',name,'"',':' ,'"',val,'"' ),'}') from iot_device_value where id = ${adr}) as json from iot_device where id = ${adr}`
+    
+                conn.query(sql, [], function (err, rows, fields) {
+                    if(err) console.log('query is not excuted. select fail...\n' + err);
+                    else{
+                        rows[0].json = JSON.parse(rows[0].json)
+                        client.publish("iot/status/2000", "" + rows[0].json);                        
+                    }
+                });
+            }, 3000);
+        });
+
+      });
+
 
   
     }
