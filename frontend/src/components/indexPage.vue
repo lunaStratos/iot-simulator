@@ -30,13 +30,35 @@
                     <div class="col">{{ device.firmware }}</div>
                     <div class="w-100"></div>
                     <div class="col bg-light fw-bold">현재온도</div>
-                    <div class="col">{{ device.json.now_temperature }}°C</div>
+                    <div class="col">
+                        <div style="height: 100px">
+                            <VueSvgGauge class="h-100 d-inline-block"
+                            :start-angle="-90"
+                            :end-angle="90"
+                            :value=device.json.now_temperature
+                            :separator-step="2"
+                            :separator-thickness="2"
+                            :min="10"
+                            :max="40"
+                            :gauge-color="[
+                                { offset: 30, color: '#2FA325' },
+                                { offset: 60, color: '#F0A815' },
+                                { offset: 100, color: '#BC1E58' },
+                            ]"                            
+                            :scale-interval="1">
+                            <div class="inner-text">
+                                <p>{{ device.json.now_temperature }}°C</p>
+                            </div>
+                            </VueSvgGauge>
+                        </div>
+                        </div>
                     <div class="w-100"></div>
                     <div class="col bg-light fw-bold">습도</div>
                     <div class="col">{{ device.json.humidity }}%</div>
                     <div class="h-200"></div>
                     <div class="col bg-light fw-bold">희망온도</div>
                     <div class="col">
+                        <!-- 희망온도 표시-->
                         <div style="height: 100px">
                             <VueSvgGauge class="h-100 d-inline-block"
                             :start-angle="-90"
@@ -53,21 +75,31 @@
                             ]"                            
                             :scale-interval="1">
                             <div class="inner-text">
-                                <p>{{ device.json.hope_temperature }}</p>
+                                <p>{{ device.json.hope_temperature }}°C</p>
                             </div>
                             </VueSvgGauge>
                         </div>
-                        <!-- 희망온도 -->
                         
-                    
-                        <div class="input-group mb-3">
+                        <!-- 희망온도 컨트롤 -->
+                        <label class="form-label" for="customRange1">
+                            <div class="input-group mb-3">
                             <input type="text" class="form-control someInput" aria-label="hope temperature" v-model="control.hope_temperature">
                             <span class="input-group-text">°C</span>
                         </div>
-                        <div class="input-group mb-3">
-                            <button type="button" class="btn btn-secondary btn-sm" @click="setControl('hope_temperature', $event)">조절하기</button>
+                        </label>
+                            <div class="range">
+                            <input type="range" v-model="control.hope_temperature" min="16" max="36" class="form-range" id="customRange1" list="tickmarks" @change="setControl('hope_temperature', $event)"/>
+                            <datalist id="tickmarks">
+                                <option value="14">14</option>
+                                <option value="20">20</option>
+                                <option value="24">24</option>
+                                <option value="38">28</option>
+                                <option value="32">32</option>
+                                <option value="36">36</option>
+                            </datalist>
                         </div>
-
+                        
+                     
                     </div>
                     <div class="w-100"></div>
                     <div class="col bg-light fw-bold"></div>
@@ -132,34 +164,15 @@
 
 <script>
 
-
 export default {
     data() {
         return {
-            device: {},
+            device: {json :{hope_temperature : 0}},
             control : {
                 switch: 0, mode : 1 , hope_temperature: 25
             }
             ,
-            options: {
-                width: 150,
-                height: 400,
-                title: "В аквариуме",
-                minValue: 20,
-                maxValue: 35,
-                majorTicks: [20, 25, 30, 35],
-                units: "°C",
-                highlights: [
-                { from: 20, to: 24, color: "#3ac1ff" },
-                { from: 24, to: 26, color: "#77ff6b" },
-                { from: 26, to: 35, color: "#ff3a3a" },
-                ],
-                borders: false,
-                borderRadius: 10,
-                borderShadowWidth: 0,
-                colorNeedle: "#0400ff",
-                valueInt: 1,
-            },
+            
         };
     },
     created() {},

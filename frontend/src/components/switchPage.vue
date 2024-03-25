@@ -58,15 +58,25 @@
                           </VueSvgGauge>
                       </div>
                       <!-- 희망온도 -->
+                      <label class="form-label" for="customRange1">
+                            <div class="input-group mb-3">
+                            <input type="text" class="form-control someInput" aria-label="strength" v-model="control.strength">
+                            <span class="input-group-text">°C</span>
+                        </div>
+                        </label>
+                            <div class="range">
+                            <input type="range" v-model="control.strength" min="0" max="100" 
+                            class="form-range" id="customRange1" list="tickmarks" @change="setControl('strength', $event)"/>
+                            <datalist id="tickmarks">
+                                <option value="0">0</option>
+                                <option value="20">20</option>
+                                <option value="40">40</option>
+                                <option value="60">60</option>
+                                <option value="80">80</option>
+                                <option value="100">100</option>
+                            </datalist>
+                        </div>
                       
-                  
-                      <div class="input-group mb-3">
-                          <input type="text" class="form-control someInput" aria-label="strength" v-model="control.strength">
-                          <span class="input-group-text">lx</span>
-                      </div>
-                      <div class="input-group mb-3">
-                          <button type="button" class="btn btn-secondary btn-sm" @click="setControl('strength', $event)">조절하기</button>
-                      </div>
 
                   </div>
                   <div class="w-100"></div>

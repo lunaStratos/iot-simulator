@@ -3,6 +3,7 @@
     "start": "./script.sh"
   },
   "dependencies": {
-    "node-schedule": "^2.1.1"
+    "node-schedule": "^2.1.1",
+    "vue-slider-component": "^4.1.0-beta.7"
   }
 }

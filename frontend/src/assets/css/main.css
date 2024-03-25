@@ -42,3 +42,8 @@ div.container {
 .input-group > input.someInput {
   flex: 0 1 100px;
 }
+
+datalist{
+  display: grid;
+  grid-auto-flow: column;  
+}

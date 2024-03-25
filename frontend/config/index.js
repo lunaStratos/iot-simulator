@@ -73,13 +73,6 @@ module.exports = {
     // `npm run build --report`
     // Set to `true` or `false` to always turn it on or off
     bundleAnalyzerReport: process.env.npm_config_report
-  },
-  css: {
-    loaderOptions: {
-      sass: {
-        includePaths: [path.resolve(__dirname, './node_modules/compass-mixins/lib')]
-      }
-    }
   }
 }
 

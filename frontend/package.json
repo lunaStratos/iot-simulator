@@ -20,6 +20,7 @@
     "vue-canvas-gauges": "^0.0.0",
     "vue-gauge": "^1.0.3",
     "vue-router": "^3.0.1",
+    "vue-slider-component": "^4.1.0-beta.7",
     "vue-svg-gauge": "^1.2.1",
     "vue-swatches": "^2.1.1"
   },
