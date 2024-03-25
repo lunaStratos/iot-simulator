@@ -9,8 +9,16 @@
   <div class="container">
       <div class="row">
           <div class="col">
-              <img v-if="device.json.switch == 1" src="@/assets/images/light_on.png"  style="max-width: 360px;"/>
+              <img v-if="device.json.switch == 1 && device.json.color == '#fff' " src="@/assets/images/light_on.png"  style="max-width: 360px;"/>
+              <img v-if="device.json.switch == 1 && device.json.color == '#f05348' " src="@/assets/images/light_on.png"  style="max-width: 360px;"/>
+              <img v-if="device.json.switch == 1 && device.json.color == '#f08848' " src="@/assets/images/light_on.png"  style="max-width: 360px;"/>
+              <img v-if="device.json.switch == 1 && device.json.color == '#f0c048' " src="@/assets/images/light_on.png"  style="max-width: 360px;"/>
+              <img v-if="device.json.switch == 1 && device.json.color == '#48f072' " src="@/assets/images/light_on.png"  style="max-width: 360px;"/>
+              <img v-if="device.json.switch == 1 && device.json.color == '#486af0' " src="@/assets/images/light_on.png"  style="max-width: 360px;"/>
+              <img v-if="device.json.switch == 1 && device.json.color == '#8348f0' " src="@/assets/images/light_on.png"  style="max-width: 360px;"/>
+              <img v-if="device.json.switch == 1 && device.json.color == '#1d0f6b' " src="@/assets/images/light_on.png"  style="max-width: 360px;"/>
               <img v-if="device.json.switch == 0" src="@/assets/images/light_off.png" style="max-width: 360px;"/>
+              <!-- -->
           </div>
           
           <div class="col">
@@ -65,7 +73,24 @@
                   <div class="col bg-light fw-bold"></div>
                   <div class="col"></div>
                   <div class="w-100"></div>
-                  
+                  <div class="col bg-light fw-bold">색상선택</div>
+                  <div class="col">
+                      <color-picker :color="device.json.color" @inputColor="setControl('color', $event)" />
+
+                      <!-- <select class="form-select"  v-bind="control.color" @change="setControl('color', $event)">
+                          <option value="1" style="background: red; color: #fff;">RED</option>
+                          <option value="2" style="background: orange; color: #fff;">Orange</option>
+                          <option value="3" style="background: yellow; color: #fff;">Yellow</option>
+                          <option value="4" style="background: green; color: #fff;">Green</option>
+                          <option value="5" style="background: blue; color: #fff;">Blue</option>
+                          <option value="6" style="background: indigo; color: #fff;">Indigo</option>
+                          <option value="7" style="background: purple; color: #fff;">Purple</option>
+                      </select> -->
+
+                      
+                      
+                  </div>
+                  <div class="w-100"></div>
                   <div class="col bg-light fw-bold">동작모드</div>
                   <div class="col">
                       <select class="form-select"  v-bind="control.mode" @change="setControl('mode', $event)">
@@ -116,8 +141,12 @@
 
 <script>
 
+import ColorPicker from "./ColorPicker";
 
 export default {
+    components : {
+        ColorPicker   
+    },
   data() {
       return {
           device: {},
@@ -127,7 +156,9 @@ export default {
           
       };
   },
-  created() {},
+  created() {
+    
+  },
   methods : {
     checkArr : function() {
       console.log(this.control);
@@ -150,14 +181,20 @@ export default {
     setControl : function(col, event){
       
       console.log(event, col, this.control)
-      let deviceControl =  event.target.value;
 
-      //switch event handler
+      let deviceControl;
+
+      //color value == event 
       if(col === "switch"){
           deviceControl = event.target.checked ? 1 : 0
       }else if(col === "strength"){
           deviceControl = this.control.strength
+      }else if(col === "color"){
+        deviceControl = event;
+      }else{
+        deviceControl =  event.target.value;
       }
+
       console.log(deviceControl, col)
       const json = JSON.stringify({ deviceControl: deviceControl, deviceControlName : col});
       this.$http
