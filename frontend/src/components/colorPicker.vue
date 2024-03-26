@@ -1,6 +1,6 @@
 <template>
     <div>
-      <v-swatches v-model="color" :swatches="swatches" v-on="listeners"></v-swatches>
+      <v-swatches v-model="color" :swatches="swatches" v-on="listeners" show-border="true"></v-swatches>
     </div>
   </template>
   

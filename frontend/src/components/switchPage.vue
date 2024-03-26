@@ -10,13 +10,13 @@
       <div class="row">
           <div class="col">
               <img v-if="device.json.switch == 1 && device.json.color == '#fff' " src="@/assets/images/light_on.png"  style="max-width: 360px;"/>
-              <img v-if="device.json.switch == 1 && device.json.color == '#f05348' " src="@/assets/images/light_on.png"  style="max-width: 360px;"/>
-              <img v-if="device.json.switch == 1 && device.json.color == '#f08848' " src="@/assets/images/light_on.png"  style="max-width: 360px;"/>
-              <img v-if="device.json.switch == 1 && device.json.color == '#f0c048' " src="@/assets/images/light_on.png"  style="max-width: 360px;"/>
-              <img v-if="device.json.switch == 1 && device.json.color == '#48f072' " src="@/assets/images/light_on.png"  style="max-width: 360px;"/>
-              <img v-if="device.json.switch == 1 && device.json.color == '#486af0' " src="@/assets/images/light_on.png"  style="max-width: 360px;"/>
-              <img v-if="device.json.switch == 1 && device.json.color == '#8348f0' " src="@/assets/images/light_on.png"  style="max-width: 360px;"/>
-              <img v-if="device.json.switch == 1 && device.json.color == '#1d0f6b' " src="@/assets/images/light_on.png"  style="max-width: 360px;"/>
+              <img v-if="device.json.switch == 1 && device.json.color == '#f05348' " src="@/assets/images/light_on_red.png"  style="max-width: 360px;"/>
+              <img v-if="device.json.switch == 1 && device.json.color == '#f08848' " src="@/assets/images/light_on_orange.png"  style="max-width: 360px;"/>
+              <img v-if="device.json.switch == 1 && device.json.color == '#f0c048' " src="@/assets/images/light_on_yellow.png"  style="max-width: 360px;"/>
+              <img v-if="device.json.switch == 1 && device.json.color == '#48f072' " src="@/assets/images/light_on_green.png"  style="max-width: 360px;"/>
+              <img v-if="device.json.switch == 1 && device.json.color == '#486af0' " src="@/assets/images/light_on_blue.png"  style="max-width: 360px;"/>
+              <img v-if="device.json.switch == 1 && device.json.color == '#8348f0' " src="@/assets/images/light_on_indigo.png"  style="max-width: 360px;"/>
+              <img v-if="device.json.switch == 1 && device.json.color == '#1d0f6b' " src="@/assets/images/light_on_purple.png"  style="max-width: 360px;"/>
               <img v-if="device.json.switch == 0" src="@/assets/images/light_off.png" style="max-width: 360px;"/>
               <!-- -->
           </div>

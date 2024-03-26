@@ -47,3 +47,9 @@ datalist{
   display: grid;
   grid-auto-flow: column;  
 }
+
+.vue-swatches {
+  .vue-swatches__trigger {
+      box-shadow: inset #CCC 0 0 0 3px;
+  }
+}
