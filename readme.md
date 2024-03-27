@@ -1,9 +1,13 @@
 ## IoT Simulator for HTTP MQTT CoAP 
 
-![image](images/animation.gif)
+<img src="./images/animation.gif" width="320" />
+<img src="./images/switch.gif" width="320" />
+
 
 
 IoT서버의 client 통신 테스트를 위해서 가상의 IoT 기기를 만들었습니다.
+
+지원되는 통신 : http coap mqtt
 
 nodejs Express.js + mysql + vue
 

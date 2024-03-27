@@ -35,7 +35,7 @@
                   <div class="col bg-light fw-bold">firmware version</div>
                   <div class="col">{{ device.firmware }}</div>
                   <div class="w-100"></div>
-                  <div class="col bg-light fw-bold">희망빛 강도</div>
+                  <div class="col bg-light fw-bold">빛 강도</div>
                   <div class="col">
                       <div style="height: 100px">
                           <VueSvgGauge class="h-100 d-inline-block"
@@ -61,7 +61,7 @@
                       <label class="form-label" for="customRange1">
                             <div class="input-group mb-3">
                             <input type="text" class="form-control someInput" aria-label="strength" v-model="control.strength">
-                            <span class="input-group-text">°C</span>
+                            <span class="input-group-text">lx</span>
                         </div>
                         </label>
                             <div class="range">
