@@ -8,4 +8,11 @@ router.get('/', function(req, res, next) {
   res.sendfile(path.join(__dirname, '../public/index.html')); // Vue로 빌드된 html 전송
 });
 
+
+/* post */
+router.post('/', function(req, res, next) {
+  console.log(req.body)
+  res.json(req.body);
+});
+
 module.exports = router;

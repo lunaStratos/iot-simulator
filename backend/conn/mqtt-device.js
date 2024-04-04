@@ -63,7 +63,9 @@ module.exports = {
           if(err) {
               console.log('query is not excuted. select fail...\n' + err);
               client.publish("iot/status/" + deviceId, "error");
-          }else client.publish("iot/status/" + deviceId, "ok");
+          }else {
+              //client.publish("iot/status/" + deviceId, "ok");
+          }
 
         });
         

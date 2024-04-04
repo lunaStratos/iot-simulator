@@ -36,7 +36,7 @@ mqttHandler.connect();
 // CoAP Server Start
 coapHandler.connect();
 // lwM2M Server Start
-lwM2MHandler.connect();
+//lwM2MHandler.connect();
 
 batch.batchStart();
 
