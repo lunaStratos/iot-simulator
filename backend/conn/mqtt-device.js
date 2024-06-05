@@ -45,6 +45,9 @@ module.exports = {
 
       });
 
+      /**
+       {"deviceId" : "1000", "deviceControl" : "0","deviceControlName":  "switch"}
+       */
       // display all incoming messages
       client.on("message", function (topic, message) {
         console.log('Received operation "' + message + '"');

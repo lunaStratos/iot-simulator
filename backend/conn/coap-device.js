@@ -2,20 +2,27 @@ var coap = require('coap');
 const mysql = require('../config/database')();
 const conn = mysql.init();
 
+/**
+ * http://localhost:3000/iot/status/1000
+ * http://localhost:3000/iot/control/1000
+ * http://localhost:3000/iot/status/2000
+ * http://localhost:3000/iot/control/2000
+ */
 module.exports = {
     
   connect() {
     var portNumber = 5683;
-    coap.createServer(function (req,res) {
-        console.log('CoAP device got a request from %s', req.url);
-        console.log('CoAp req %s', req);
-        console.log('CoAp req.payload %s', req.payload);
+    const server = coap.createServer()
+
+    server.on('request', (req, res) => {
+
+      console.log('CoAP device got a request from %s', req.url);
 
         const deviceId = req.url.substring(req.url.lastIndexOf('/') + 1);
 
         switch(req.url) {
             case "/iot/status/" + deviceId:
-              displayOutput(res, {'deviceId': deviceId});
+              displayOutput(res, req, {'deviceId': deviceId});
             break;
             case "/iot/control/" + deviceId:
               controlProcess(res, req, deviceId)
@@ -24,13 +31,18 @@ module.exports = {
             default:
             displayOutput(res);
   
-          }
-     }).listen(portNumber);
+        }
+    })
     
+    server.listen(() => {
+        console.log('server started')
+    })
+
     console.log(`CoAP Server is started at port Number ${portNumber}`);
+  
     
     // Send
-    function displayOutput (res, content) {
+    function displayOutput (res, req, content, ) {
 
       const adr = content.deviceId;
     
@@ -40,8 +52,10 @@ module.exports = {
           if(err) console.log('query is not excuted. select fail...\n' + err);
           else{
               rows[0].json = JSON.parse(rows[0].json)
+
               res.setOption('Content-Format','application/json');
               res.end(JSON.stringify({ device: rows[0] }));
+              
           }
       });
 
@@ -52,7 +66,7 @@ module.exports = {
 
       const deviceId = ids;
 
-      const payloadJson = JSON.parse(req.payload) //payload에온다 
+      const payloadJson = JSON.parse(req.payload) //payload에 온다 
 
       console.log(payloadJson)
       const deviceControl = payloadJson.deviceControl
@@ -66,6 +80,7 @@ module.exports = {
       res.setOption('Content-Format','application/json');
 
       var sql = 'UPDATE iot_device_value SET val = ? WHERE name = ? AND id = ?';
+      
       conn.query(sql, [deviceControl, deviceControlName , deviceId], function (err, rows, fields) {
           if(err) {
               console.log('query is not excuted. select fail...\n' + err);

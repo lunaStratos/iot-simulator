@@ -25,18 +25,16 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 // Vue.js Routing page
+app.use('/api/iot', iotRouter);
 app.use('/', indexRouter);
 app.use(history());
 app.use(express.static('public'));
 
-app.use('/api/iot', iotRouter);
 
 // MQTT Server Start
 mqttHandler.connect();
 // CoAP Server Start
 coapHandler.connect();
-// lwM2M Server Start
-//lwM2MHandler.connect();
 
 batch.batchStart();
 
