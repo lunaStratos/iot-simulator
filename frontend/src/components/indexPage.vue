@@ -189,6 +189,7 @@ export default {
                     this.device = device;
                     this.control.switch = device.json.switch;
                     this.control.mode = device.json.mode;
+                    this.control.hope_temperature = device.json.hope_temperature;
                 }
             })
             .catch((error) => {

@@ -67,7 +67,7 @@ module.exports = {
               console.log('query is not excuted. select fail...\n' + err);
               client.publish("iot/status/" + deviceId, "error");
           }else {
-              //client.publish("iot/status/" + deviceId, "ok");
+              client.publish("iot/status/" + deviceId, JSON.stringify({status: "ok"}));
           }
 
         });
@@ -95,7 +95,7 @@ module.exports = {
                     if(err) console.log('query is not excuted. select fail...\n' + err);
                     else{
                         rows[0].json = JSON.parse(rows[0].json)
-                        client.publish("iot/status/2000", "" + rows[0].json);                        
+                        client.publish("iot/status/2000", "" + JSON.stringify(rows[0].json));                        
                     }
                 });
             }, 3000);
