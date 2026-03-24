@@ -13,12 +13,11 @@
     "debug": "~2.6.9",
     "express": "~4.16.1",
     "http-errors": "~1.6.3",
-    "lwm2m": "0.13.0",
-    "lwm2m-node-lib": "1.4.0",
+    "modbus-serial": "^8.0.25",
     "morgan": "~1.9.1",
     "mqtt": "5.5.0",
-    "mysql": "^2.18.1",
-    "mysql2": "^3.9.2",
+    "node-bacnet": "^0.2.4",
+    "node-opcua": "^2.165.1",
     "node-schedule": "^2.1.1",
     "pug": "2.0.0-beta11"
   }

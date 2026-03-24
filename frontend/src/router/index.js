@@ -1,22 +1,15 @@
-import Vue from 'vue'
-import Router from 'vue-router'
-import IndexPage from '@/components/IndexPage'
-import SwitchPage from '@/components/SwitchPage'
+import { createRouter, createWebHistory } from 'vue-router'
+import BoilerPage from '@/pages/BoilerPage.vue'
+import SwitchPage from '@/pages/SwitchPage.vue'
+import ProtocolGuidePage from '@/pages/ProtocolGuidePage.vue'
 
-Vue.use(Router)
+const routes = [
+  { path: '/', name: 'Boiler', component: BoilerPage },
+  { path: '/switch', name: 'Switch', component: SwitchPage },
+  { path: '/guide', name: 'ProtocolGuide', component: ProtocolGuidePage }
+]
 
-export default new Router({
-  mode: 'history',
-  routes: [
-    {
-      path: '/',
-      name: 'IndexPage',
-      component: IndexPage
-    },
-    {
-      path: '/switch',
-      name: 'SwitchPage',
-      component: SwitchPage
-    }
-  ]
+export default createRouter({
+  history: createWebHistory(),
+  routes
 })

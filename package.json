@@ -1,9 +1,14 @@
 {
+  "name": "iot-simulator",
+  "version": "1.0.0",
+  "description": "IoT Device Simulator — 6 protocols (HTTP, MQTT, CoAP, BACnet, OPC-UA, Modbus)",
+  "private": true,
+  "main": "launcher.js",
   "scripts": {
-    "start": "./script.sh"
-  },
-  "dependencies": {
-    "node-schedule": "^2.1.1",
-    "vue-slider-component": "^4.1.0-beta.7"
+    "start": "node launcher.js",
+    "server": "cd backend && npm start",
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "postinstall": "cd backend && npm install && cd ../frontend && npm install"
   }
 }

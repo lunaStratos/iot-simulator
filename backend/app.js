@@ -5,12 +5,13 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const history = require('connect-history-api-fallback');
 
-
 var indexRouter = require('./routes/index');
 var iotRouter = require('./routes/iot');
 var mqttHandler = require('./conn/mqtt-device');
 var coapHandler = require('./conn/coap-device');
-var lwM2MHandler = require('./conn/lwm2m-device');
+var bacnetHandler = require('./conn/bacnet-device');
+var opcuaHandler = require('./conn/opcua-device');
+var modbusHandler = require('./conn/modbus-device');
 var batch = require('./config/batch');
 
 var app = express();
@@ -30,13 +31,15 @@ app.use('/', indexRouter);
 app.use(history());
 app.use(express.static('public'));
 
-
-// MQTT Server Start
+// 프로토콜 서버 시작
+console.info('[APP] Starting protocol servers...');
 mqttHandler.connect();
-// CoAP Server Start
 coapHandler.connect();
-
+bacnetHandler.connect();
+opcuaHandler.connect();
+modbusHandler.connect();
 batch.batchStart();
+console.info('[APP] Batch scheduler started');
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -45,11 +48,9 @@ app.use(function(req, res, next) {
 
 // error handler
 app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-  // render the error page
   res.status(err.status || 500);
   res.render('error');
 });

@@ -1,0 +1,4 @@
+[
+  { "id": 1000, "name": "보일러1", "firmware": "1.0.3", "version": "27", "serialNo": "5910438138" },
+  { "id": 2000, "name": "스마트스위치", "firmware": "1.0.0", "version": "22", "serialNo": "492992343" }
+]
