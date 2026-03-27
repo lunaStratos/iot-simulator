@@ -98,9 +98,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
+import { ref, reactive } from 'vue'
 import axios from 'axios'
 import ProtocolSelector from '@/components/ProtocolSelector.vue'
+import { useDeviceSocket } from '@/composables/useDeviceSocket'
 
 const selectedProtocol = ref('http')
 const device = reactive({ name: '', firmware: '', json: { hope_temperature: 0, now_temperature: 0, humidity: 0, mode: 1, switch: 0, status: 'normal' } })
@@ -123,24 +124,17 @@ const tempColor = (v) => {
   return '#e63946'
 }
 
-let timer = null
-
-async function getStatus() {
-  try {
-    const { data } = await axios.get(`/api/iot/status/1000?protocol=${selectedProtocol.value}`)
-    if (data.device) {
-      Object.assign(device, data.device)
-      if (data.device.json) {
-        Object.assign(device.json, data.device.json)
-        control.switch = data.device.json.switch
-        control.mode = data.device.json.mode
-        control.hope_temperature = data.device.json.hope_temperature
-      }
+useDeviceSocket('1000', selectedProtocol, (data) => {
+  if (data.device) {
+    Object.assign(device, data.device)
+    if (data.device.json) {
+      Object.assign(device.json, data.device.json)
+      control.switch = data.device.json.switch
+      control.mode = data.device.json.mode
+      control.hope_temperature = data.device.json.hope_temperature
     }
-  } catch (e) {
-    console.error(e)
   }
-}
+})
 
 async function setControl(name, value) {
   try {
@@ -148,20 +142,10 @@ async function setControl(name, value) {
       deviceControl: value,
       deviceControlName: name
     })
-    await getStatus()
   } catch (e) {
     console.error(e)
   }
 }
-
-onMounted(() => {
-  getStatus()
-  timer = setInterval(getStatus, 3000)
-})
-
-onBeforeUnmount(() => {
-  clearInterval(timer)
-})
 </script>
 
 <style>

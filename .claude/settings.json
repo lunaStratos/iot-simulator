@@ -3,7 +3,8 @@
     "allow": [
       "Bash(/Users/devcat/Documents/lunastratos/iot-simulator/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron -e \":*)",
       "Bash(chmod +x /Users/devcat/Documents/lunastratos/iot-simulator/IoT-Simulator.command)",
-      "Bash(chmod +x /Users/devcat/Documents/lunastratos/iot-simulator/launcher.js)"
+      "Bash(chmod +x /Users/devcat/Documents/lunastratos/iot-simulator/launcher.js)",
+      "Bash(grep -E \"\\\\.\\(vue|js\\)$\")"
     ]
   }
 }

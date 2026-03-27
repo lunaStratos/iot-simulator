@@ -21,6 +21,10 @@ app.set('port', port);
 
 var server = http.createServer(app);
 
+// Socket.IO 초기화
+var socketSetup = require('../config/socket');
+socketSetup.init(server);
+
 /**
  * Listen on provided port, on all network interfaces.
  */

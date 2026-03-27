@@ -100,9 +100,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import axios from 'axios'
 import ProtocolSelector from '@/components/ProtocolSelector.vue'
+import { useDeviceSocket } from '@/composables/useDeviceSocket'
 
 import lightOnImg from '@/assets/images/light_on.png'
 import lightOnRedImg from '@/assets/images/light_on_red.png'
@@ -148,24 +149,17 @@ const modes = [
   { label: '산타', value: '4' }
 ]
 
-let timer = null
-
-async function getStatus() {
-  try {
-    const { data } = await axios.get(`/api/iot/status/2000?protocol=${selectedProtocol.value}`)
-    if (data.device) {
-      Object.assign(device, data.device)
-      if (data.device.json) {
-        Object.assign(device.json, data.device.json)
-        control.switch = data.device.json.switch
-        control.mode = data.device.json.mode
-        control.strength = data.device.json.strength || 0
-      }
+useDeviceSocket('2000', selectedProtocol, (data) => {
+  if (data.device) {
+    Object.assign(device, data.device)
+    if (data.device.json) {
+      Object.assign(device.json, data.device.json)
+      control.switch = data.device.json.switch
+      control.mode = data.device.json.mode
+      control.strength = data.device.json.strength || 0
     }
-  } catch (e) {
-    console.error(e)
   }
-}
+})
 
 async function setControl(name, value) {
   try {
@@ -173,20 +167,10 @@ async function setControl(name, value) {
       deviceControl: value,
       deviceControlName: name
     })
-    await getStatus()
   } catch (e) {
     console.error(e)
   }
 }
-
-onMounted(() => {
-  getStatus()
-  timer = setInterval(getStatus, 3000)
-})
-
-onBeforeUnmount(() => {
-  clearInterval(timer)
-})
 </script>
 
 <style>

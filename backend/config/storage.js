@@ -6,9 +6,12 @@
  */
 const fs = require('fs');
 const path = require('path');
+const { EventEmitter } = require('events');
 
 const DEVICES_PATH = path.join(__dirname, '../data/devices.json');
 const VALUES_PATH  = path.join(__dirname, '../data/values.json');
+
+const events = new EventEmitter();
 
 let devices = [];
 let values  = {};
@@ -72,6 +75,7 @@ module.exports = {
 
     values[id][name] = String(val);
     saveValues();
+    events.emit('change', { deviceId: id });
     return true;
   },
 
@@ -115,5 +119,8 @@ module.exports = {
   /**
    * 데이터 리로드
    */
-  reload: load
+  reload: load,
+
+  /** 변경 이벤트 emitter */
+  events
 };

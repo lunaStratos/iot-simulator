@@ -1,11 +1,11 @@
 {
   "1000": {
     "hope_temperature": "27",
-    "now_temperature": "22",
+    "now_temperature": "20",
     "mode": "5",
     "switch": "1",
     "status": "normal",
-    "humidity": "50"
+    "humidity": "81"
   },
   "2000": {
     "switch": "0",

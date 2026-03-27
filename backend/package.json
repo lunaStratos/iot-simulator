@@ -19,6 +19,7 @@
     "node-bacnet": "^0.2.4",
     "node-opcua": "^2.165.1",
     "node-schedule": "^2.1.1",
-    "pug": "2.0.0-beta11"
+    "pug": "2.0.0-beta11",
+    "socket.io": "^4.8.3"
   }
 }
