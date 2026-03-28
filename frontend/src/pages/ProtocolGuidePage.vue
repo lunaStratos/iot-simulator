@@ -8,7 +8,7 @@
       <n-tab-pane name="http" tab="HTTP (REST)">
         <n-card>
           <n-descriptions label-placement="left" :column="1" bordered size="small" style="margin-bottom: 16px;">
-            <n-descriptions-item label="포트">3000</n-descriptions-item>
+            <n-descriptions-item label="포트">41234</n-descriptions-item>
             <n-descriptions-item label="프로토콜">HTTP/1.1 REST</n-descriptions-item>
             <n-descriptions-item label="도구">curl, Postman, 브라우저</n-descriptions-item>
           </n-descriptions>
@@ -154,6 +154,71 @@
           <n-code :code="modbusCode" language="javascript" word-wrap />
         </n-card>
       </n-tab-pane>
+      <!-- DNP3 -->
+      <n-tab-pane name="dnp3" tab="DNP3">
+        <n-card>
+          <n-descriptions label-placement="left" :column="1" bordered size="small" style="margin-bottom: 16px;">
+            <n-descriptions-item label="포트">20000</n-descriptions-item>
+            <n-descriptions-item label="프로토콜">DNP3 over TCP (간소화)</n-descriptions-item>
+            <n-descriptions-item label="지원 FC">0x01 (Read), 0x03 (Direct Operate)</n-descriptions-item>
+            <n-descriptions-item label="도구">Node.js net 모듈</n-descriptions-item>
+          </n-descriptions>
+
+          <n-h4>포인트 매핑 — Analog Input (Group 30)</n-h4>
+          <n-table :bordered="true" :single-line="false" size="small">
+            <thead><tr><th>인덱스</th><th>디바이스</th><th>속성</th></tr></thead>
+            <tbody>
+              <tr v-for="row in dnp3AiMap" :key="'ai'+row.idx">
+                <td><n-tag size="tiny" type="info">{{ row.idx }}</n-tag></td>
+                <td>{{ row.device }}</td>
+                <td>{{ row.prop }}</td>
+              </tr>
+            </tbody>
+          </n-table>
+
+          <n-h4 style="margin-top: 16px;">포인트 매핑 — Binary Input (Group 1)</n-h4>
+          <n-table :bordered="true" :single-line="false" size="small">
+            <thead><tr><th>인덱스</th><th>디바이스</th><th>속성</th></tr></thead>
+            <tbody>
+              <tr v-for="row in dnp3BiMap" :key="'bi'+row.idx">
+                <td><n-tag size="tiny" type="info">{{ row.idx }}</n-tag></td>
+                <td>{{ row.device }}</td>
+                <td>{{ row.prop }}</td>
+              </tr>
+            </tbody>
+          </n-table>
+
+          <n-h4 style="margin-top: 16px;">Node.js 예제</n-h4>
+          <n-code :code="dnp3Code" language="javascript" word-wrap />
+        </n-card>
+      </n-tab-pane>
+
+      <!-- IEC 61850 -->
+      <n-tab-pane name="iec61850" tab="IEC 61850">
+        <n-card>
+          <n-descriptions label-placement="left" :column="1" bordered size="small" style="margin-bottom: 16px;">
+            <n-descriptions-item label="포트">10200 (표준 102는 관리자 권한 필요)</n-descriptions-item>
+            <n-descriptions-item label="프로토콜">간소화 MMS over TCP</n-descriptions-item>
+            <n-descriptions-item label="프레임">헤더(MMS\0) + 길이(4B) + 서비스타입(1B) + JSON</n-descriptions-item>
+            <n-descriptions-item label="도구">Node.js net 모듈</n-descriptions-item>
+          </n-descriptions>
+
+          <n-h4>데이터 모델 (Logical Device / Logical Node)</n-h4>
+          <n-table :bordered="true" :single-line="false" size="small">
+            <thead><tr><th>IEC 61850 경로</th><th>디바이스</th><th>속성</th></tr></thead>
+            <tbody>
+              <tr v-for="row in iec61850Map" :key="row.path">
+                <td><n-tag size="tiny">{{ row.path }}</n-tag></td>
+                <td>{{ row.device }}</td>
+                <td>{{ row.prop }}</td>
+              </tr>
+            </tbody>
+          </n-table>
+
+          <n-h4 style="margin-top: 16px;">Node.js 예제</n-h4>
+          <n-code :code="iec61850Code" language="javascript" word-wrap />
+        </n-card>
+      </n-tab-pane>
     </n-tabs>
   </div>
 </template>
@@ -161,32 +226,34 @@
 <script setup>
 // ── HTTP ──
 const httpStatus = `# 보일러 상태 조회
-curl http://localhost:3000/api/iot/status/1000
+curl http://localhost:41234/api/iot/status/1000
 
 # 스마트 LED 상태 조회
-curl http://localhost:3000/api/iot/status/2000`
+curl http://localhost:41234/api/iot/status/2000`
 
 const httpControl = `# 보일러 전원 ON
-curl -X PUT http://localhost:3000/api/iot/control/1000 \\
+curl -X PUT http://localhost:41234/api/iot/control/1000 \\
   -H "Content-Type: application/json" \\
   -d '{"deviceControl": 1, "deviceControlName": "switch"}'
 
 # 보일러 희망온도 25도
-curl -X PUT http://localhost:3000/api/iot/control/1000 \\
+curl -X PUT http://localhost:41234/api/iot/control/1000 \\
   -H "Content-Type: application/json" \\
   -d '{"deviceControl": 25, "deviceControlName": "hope_temperature"}'
 
 # 스마트 LED 밝기 80
-curl -X PUT http://localhost:3000/api/iot/control/2000 \\
+curl -X PUT http://localhost:41234/api/iot/control/2000 \\
   -H "Content-Type: application/json" \\
   -d '{"deviceControl": 80, "deviceControlName": "strength"}'`
 
 const httpProxy = `# 각 프로토콜 서버를 경유하여 조회
-curl http://localhost:3000/api/iot/status/1000?protocol=mqtt
-curl http://localhost:3000/api/iot/status/1000?protocol=coap
-curl http://localhost:3000/api/iot/status/1000?protocol=bacnet
-curl http://localhost:3000/api/iot/status/1000?protocol=opcua
-curl http://localhost:3000/api/iot/status/1000?protocol=modbus`
+curl http://localhost:41234/api/iot/status/1000?protocol=mqtt
+curl http://localhost:41234/api/iot/status/1000?protocol=coap
+curl http://localhost:41234/api/iot/status/1000?protocol=bacnet
+curl http://localhost:41234/api/iot/status/1000?protocol=opcua
+curl http://localhost:41234/api/iot/status/1000?protocol=modbus
+curl http://localhost:41234/api/iot/status/1000?protocol=dnp3
+curl http://localhost:41234/api/iot/status/1000?protocol=iec61850`
 
 // ── MQTT ──
 const mqttSubscribe = `# 보일러 상태 구독 (3초 간격 자동 발행)
@@ -339,5 +406,95 @@ client.connectTCP('localhost', { port: 5020 }, () => {
   client.writeRegister(0, 25, (err) => {
     console.log(err ? 'error' : 'ok');
   });
+});`
+
+// ── DNP3 ──
+const dnp3AiMap = [
+  { idx: 0, device: '보일러(1000)', prop: 'hope_temperature' },
+  { idx: 1, device: '보일러(1000)', prop: 'now_temperature' },
+  { idx: 2, device: '보일러(1000)', prop: 'humidity' },
+  { idx: 3, device: '보일러(1000)', prop: 'mode' },
+  { idx: 10, device: '스마트LED(2000)', prop: 'strength' },
+  { idx: 11, device: '스마트LED(2000)', prop: 'mode' }
+]
+
+const dnp3BiMap = [
+  { idx: 0, device: '보일러(1000)', prop: 'switch' },
+  { idx: 10, device: '스마트LED(2000)', prop: 'switch' }
+]
+
+const dnp3Code = `const net = require('net');
+
+const conn = net.createConnection({ host: 'localhost', port: 20000 }, () => {
+  // Read Analog Input — index 0 (hope_temperature), 1개
+  const frame = Buffer.alloc(15);
+  frame[0] = 0x05; frame[1] = 0x64;  // 헤더
+  frame.writeUInt16BE(11, 2);         // payload 길이
+  frame.writeUInt16LE(1, 4);          // src addr
+  frame.writeUInt16LE(10, 6);         // dst addr
+  frame[8] = 0x01;                    // FC: Read
+  frame[9] = 30;                      // Object Group: Analog Input
+  frame[10] = 1;                      // Variation
+  frame.writeUInt16BE(0, 11);         // Start index
+  frame.writeUInt16BE(4, 13);         // Count (4개)
+  conn.write(frame);
+});
+
+conn.on('data', (data) => {
+  const count = data[10];
+  for (let i = 0; i < count; i++) {
+    console.log('Point %d: %d', i, data.readInt32BE(11 + i * 4));
+  }
+  conn.destroy();
+});`
+
+// ── IEC 61850 ──
+const iec61850Map = [
+  { path: 'Boiler/TTMP1.TmpSp.setMag', device: '보일러(1000)', prop: 'hope_temperature' },
+  { path: 'Boiler/TTMP1.TmpPV.instMag', device: '보일러(1000)', prop: 'now_temperature' },
+  { path: 'Boiler/MMET1.Hum.instMag', device: '보일러(1000)', prop: 'humidity' },
+  { path: 'Boiler/CSWI1.OpMode.stVal', device: '보일러(1000)', prop: 'mode' },
+  { path: 'Boiler/CSWI1.Pos.stVal', device: '보일러(1000)', prop: 'switch' },
+  { path: 'SmartLED/DGEN1.OpMode.stVal', device: '스마트LED(2000)', prop: 'mode' },
+  { path: 'SmartLED/CSWI1.Pos.stVal', device: '스마트LED(2000)', prop: 'switch' },
+  { path: 'SmartLED/MMXU1.Brt.instMag', device: '스마트LED(2000)', prop: 'strength' }
+]
+
+const iec61850Code = `const net = require('net');
+
+function sendRequest(serviceType, payload) {
+  return new Promise((resolve) => {
+    const conn = net.createConnection({ host: 'localhost', port: 10200 }, () => {
+      const json = Buffer.from(JSON.stringify(payload), 'utf8');
+      const frame = Buffer.alloc(9 + json.length);
+      // 헤더: "MMS\\0"
+      frame[0] = 0x4D; frame[1] = 0x4D;
+      frame[2] = 0x53; frame[3] = 0x00;
+      frame.writeUInt32BE(1 + json.length, 4);
+      frame[8] = serviceType;
+      json.copy(frame, 9);
+      conn.write(frame);
+    });
+
+    conn.on('data', (data) => {
+      const pLen = data.readUInt32BE(4);
+      const result = data.slice(9, 8 + pLen).toString('utf8');
+      console.log(JSON.parse(result));
+      conn.destroy();
+      resolve();
+    });
+  });
+}
+
+// 디바이스 전체 읽기
+sendRequest(0x01, { device: 'Boiler' });
+
+// 단일 경로 읽기
+sendRequest(0x01, { path: 'Boiler/TTMP1.TmpSp.setMag' });
+
+// 값 쓰기 — 희망온도 25도
+sendRequest(0x02, {
+  path: 'Boiler/TTMP1.TmpSp.setMag',
+  value: '25'
 });`
 </script>

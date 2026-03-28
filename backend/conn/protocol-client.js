@@ -263,6 +263,201 @@ function modbusControl(deviceId, controlName, controlValue) {
   });
 }
 
+// ─── DNP3 클라이언트 ───────────────────────────────────
+const dnp3AnalogInputMap = {
+  1000: {
+    hope_temperature: 0,
+    now_temperature: 1,
+    humidity: 2,
+    mode: 3
+  },
+  2000: {
+    strength: 10,
+    mode: 11
+  }
+};
+
+const dnp3BinaryInputMap = {
+  1000: { 'switch': 0 },
+  2000: { 'switch': 10 }
+};
+
+function dnp3ReadPoints(host, port, objGroup, startIndex, count) {
+  return new Promise((resolve, reject) => {
+    const conn = net.createConnection({ host, port }, () => {
+      const payloadLen = 7 + (count > 1 ? 2 : 0);
+      const frame = Buffer.alloc(4 + payloadLen);
+      frame[0] = 0x05;
+      frame[1] = 0x64;
+      frame.writeUInt16BE(payloadLen, 2);
+      frame.writeUInt16LE(1, 4);   // src
+      frame.writeUInt16LE(10, 6);  // dst (outstation)
+      frame[8] = 0x01;             // Read
+      frame[9] = objGroup;
+      frame[10] = 1;               // variation
+      frame.writeUInt16BE(startIndex, 11);
+      if (count > 1) frame.writeUInt16BE(count, 13);
+      conn.write(frame);
+    });
+
+    const timeout = setTimeout(() => { conn.destroy(); reject(new Error('DNP3 timeout')); }, 5000);
+
+    let buf = Buffer.alloc(0);
+    conn.on('data', (data) => {
+      buf = Buffer.concat([buf, data]);
+      if (buf.length >= 11) {
+        clearTimeout(timeout);
+        const respCount = buf[10];
+        const values = [];
+        for (let i = 0; i < respCount && (11 + i * 4 + 4) <= buf.length; i++) {
+          values.push(buf.readInt32BE(11 + i * 4));
+        }
+        conn.destroy();
+        resolve(values);
+      }
+    });
+
+    conn.on('error', (err) => { clearTimeout(timeout); reject(err); });
+  });
+}
+
+function dnp3Status(deviceId) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const results = {};
+      const aiMap = dnp3AnalogInputMap[deviceId];
+      const biMap = dnp3BinaryInputMap[deviceId];
+
+      if (aiMap) {
+        const entries = Object.entries(aiMap);
+        for (const [name, idx] of entries) {
+          const vals = await dnp3ReadPoints('localhost', 20000, 30, idx, 1);
+          results[name] = String(vals[0] || 0);
+        }
+      }
+
+      if (biMap) {
+        const entries = Object.entries(biMap);
+        for (const [name, idx] of entries) {
+          const vals = await dnp3ReadPoints('localhost', 20000, 1, idx, 1);
+          results[name] = String(vals[0] || 0);
+        }
+      }
+
+      resolve({ device: { id: Number(deviceId), json: results }, protocol: 'dnp3' });
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+function dnp3Control(deviceId, controlName, controlValue) {
+  return new Promise((resolve, reject) => {
+    // 출력 타입 결정
+    let objGroup, index;
+    const biMap = dnp3BinaryInputMap[deviceId];
+    if (biMap && biMap[controlName] !== undefined) {
+      objGroup = 12; // Binary Output
+      index = biMap[controlName];
+    } else {
+      objGroup = 41; // Analog Output
+      const aiMap = dnp3AnalogInputMap[deviceId];
+      if (aiMap && aiMap[controlName] !== undefined) {
+        index = aiMap[controlName];
+      } else {
+        return reject(new Error('Unknown DNP3 point'));
+      }
+    }
+
+    const conn = net.createConnection({ host: 'localhost', port: 20000 }, () => {
+      const frame = Buffer.alloc(4 + 11);
+      frame[0] = 0x05;
+      frame[1] = 0x64;
+      frame.writeUInt16BE(11, 2);
+      frame.writeUInt16LE(1, 4);
+      frame.writeUInt16LE(10, 6);
+      frame[8] = 0x03;             // Direct Operate
+      frame[9] = objGroup;
+      frame[10] = 1;
+      frame.writeUInt16BE(index, 11);
+      frame.writeInt32BE(parseInt(controlValue) || 0, 13);
+      conn.write(frame);
+    });
+
+    const timeout = setTimeout(() => { conn.destroy(); reject(new Error('DNP3 timeout')); }, 5000);
+
+    conn.on('data', () => {
+      clearTimeout(timeout);
+      conn.destroy();
+      resolve({ status: 'ok' });
+    });
+
+    conn.on('error', (err) => { clearTimeout(timeout); reject(err); });
+  });
+}
+
+// ─── IEC 61850 클라이언트 ──────────────────────────────
+const deviceNameMap = { 1000: 'Boiler', 2000: 'SmartLED' };
+
+const iec61850ControlPaths = {
+  1000: {
+    hope_temperature: 'Boiler/TTMP1.TmpSp.setMag',
+    mode: 'Boiler/CSWI1.OpMode.stVal',
+    'switch': 'Boiler/CSWI1.Pos.stVal'
+  },
+  2000: {
+    mode: 'SmartLED/DGEN1.OpMode.stVal',
+    'switch': 'SmartLED/CSWI1.Pos.stVal',
+    strength: 'SmartLED/MMXU1.Brt.instMag',
+    color: 'SmartLED/MMXU1.Col.instMag'
+  }
+};
+
+function iec61850Send(serviceType, payload) {
+  return new Promise((resolve, reject) => {
+    const conn = net.createConnection({ host: 'localhost', port: 10200 }, () => {
+      const jsonBuf = Buffer.from(JSON.stringify(payload), 'utf8');
+      const frame = Buffer.alloc(4 + 4 + 1 + jsonBuf.length);
+      frame[0] = 0x4D; frame[1] = 0x4D; frame[2] = 0x53; frame[3] = 0x00;
+      frame.writeUInt32BE(1 + jsonBuf.length, 4);
+      frame[8] = serviceType;
+      jsonBuf.copy(frame, 9);
+      conn.write(frame);
+    });
+
+    const timeout = setTimeout(() => { conn.destroy(); reject(new Error('IEC61850 timeout')); }, 5000);
+
+    let buf = Buffer.alloc(0);
+    conn.on('data', (data) => {
+      buf = Buffer.concat([buf, data]);
+      if (buf.length >= 9) {
+        const pLen = buf.readUInt32BE(4);
+        if (buf.length >= 8 + pLen) {
+          clearTimeout(timeout);
+          const jsonStr = buf.slice(9, 8 + pLen).toString('utf8');
+          conn.destroy();
+          try { resolve(JSON.parse(jsonStr)); }
+          catch (e) { reject(e); }
+        }
+      }
+    });
+
+    conn.on('error', (err) => { clearTimeout(timeout); reject(err); });
+  });
+}
+
+function iec61850Status(deviceId) {
+  const deviceName = deviceNameMap[deviceId] || deviceNameMap[Number(deviceId)];
+  if (!deviceName) return Promise.reject(new Error('Unknown IEC61850 device'));
+  return iec61850Send(0x01, { device: deviceName });
+}
+
+function iec61850Control(deviceId, controlName, controlValue) {
+  const paths = iec61850ControlPaths[deviceId] || iec61850ControlPaths[Number(deviceId)];
+  if (!paths || !paths[controlName]) return Promise.reject(new Error('Unknown IEC61850 path'));
+  return iec61850Send(0x02, { path: paths[controlName], value: String(controlValue) });
+}
+
 // ─── 통합 인터페이스 ────────────────────────────────────
 module.exports = {
   /**
@@ -277,8 +472,10 @@ module.exports = {
       case 'coap':   return coapStatus(deviceId);
       case 'bacnet': return bacnetStatus(deviceId);
       case 'opcua':  return opcuaStatus(deviceId);
-      case 'modbus': return modbusStatus(deviceId);
-      default:       return Promise.reject(new Error('use-http'));
+      case 'modbus':   return modbusStatus(deviceId);
+      case 'dnp3':     return dnp3Status(deviceId);
+      case 'iec61850': return iec61850Status(deviceId);
+      default:         return Promise.reject(new Error('use-http'));
     }
   },
 
@@ -296,8 +493,10 @@ module.exports = {
       case 'coap':   return coapControl(deviceId, controlName, controlValue);
       case 'bacnet': return bacnetControl(deviceId, controlName, controlValue);
       case 'opcua':  return opcuaControl(deviceId, controlName, controlValue);
-      case 'modbus': return modbusControl(deviceId, controlName, controlValue);
-      default:       return Promise.reject(new Error('use-http'));
+      case 'modbus':   return modbusControl(deviceId, controlName, controlValue);
+      case 'dnp3':     return dnp3Control(deviceId, controlName, controlValue);
+      case 'iec61850': return iec61850Control(deviceId, controlName, controlValue);
+      default:         return Promise.reject(new Error('use-http'));
     }
   }
 };

@@ -134,3 +134,4 @@ dist
 backend/public/static
 
 /.claude
+.claude

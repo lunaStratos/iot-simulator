@@ -27,10 +27,13 @@ const protocols = [
   { label: 'CoAP', value: 'coap' },
   { label: 'BACnet', value: 'bacnet' },
   { label: 'OPC-UA', value: 'opcua' },
-  { label: 'Modbus', value: 'modbus' }
+  { label: 'Modbus', value: 'modbus' },
+  { label: 'DNP3', value: 'dnp3' },
+  { label: 'IEC 61850', value: 'iec61850' }
 ]
 
 const portMap = {
-  http: 3000, mqtt: 1883, coap: 5683, bacnet: 47808, opcua: 4840, modbus: 5020
+  http: 41234, mqtt: 1883, coap: 5683, bacnet: 47808, opcua: 4840, modbus: 5020,
+  dnp3: 20000, iec61850: 10200
 }
 </script>
