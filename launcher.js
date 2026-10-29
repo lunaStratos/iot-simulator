@@ -13,7 +13,7 @@ process.chdir(backendDir);
 const app = require('./backend/app');
 const http = require('http');
 
-const PORT = process.env.PORT || 3030;
+const PORT = process.env.PORT || 41234;
 const server = http.createServer(app);
 
 server.listen(PORT, () => {
@@ -22,7 +22,7 @@ server.listen(PORT, () => {
   console.log('  ╔═══════════════════════════════════════╗');
   console.log('  ║       IoT Device Simulator            ║');
   console.log('  ╠═══════════════════════════════════════╣');
-  console.log(`  ║  Web UI : ${url}            ║`);
+  console.log(`  ║  Web UI : ${url}           ║`);
   console.log('  ║                                       ║');
   console.log('  ║  Protocols:                           ║');
   console.log('  ║    MQTT      : localhost:1883         ║');
@@ -30,6 +30,8 @@ server.listen(PORT, () => {
   console.log('  ║    BACnet    : localhost:47808        ║');
   console.log('  ║    OPC-UA    : localhost:4840         ║');
   console.log('  ║    Modbus TCP: localhost:5020         ║');
+  console.log('  ║    DNP3      : localhost:20000        ║');
+  console.log('  ║    IEC 61850 : localhost:10200        ║');
   console.log('  ║                                       ║');
   console.log('  ║  Press Ctrl+C to stop                 ║');
   console.log('  ╚═══════════════════════════════════════╝');
@@ -41,7 +43,7 @@ server.listen(PORT, () => {
 
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
-    console.error(`Port ${PORT} is already in use. Try: PORT=3031 node launcher.js`);
+    console.error(`Port ${PORT} is already in use. Try: PORT=3001 node launcher.js`);
   } else {
     console.error('Server error:', err.message);
   }
