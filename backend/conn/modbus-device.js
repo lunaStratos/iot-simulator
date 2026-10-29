@@ -11,7 +11,9 @@ const registerMap = {
   4: { deviceId: 1000, name: 'switch' },
   100: { deviceId: 2000, name: 'switch' },
   101: { deviceId: 2000, name: 'strength' },
-  102: { deviceId: 2000, name: 'mode' }
+  102: { deviceId: 2000, name: 'mode' },
+  // scale: 레지스터 값 = 실제 값 × scale (int16, 예: 24.5°C → 245)
+  200: { deviceId: 3000, name: 'temperature', scale: 10 }
 };
 
 const holdingRegisters = {};
@@ -19,7 +21,9 @@ const holdingRegisters = {};
 function refreshRegisters() {
   for (const [addr, mapping] of Object.entries(registerMap)) {
     const val = storage.getValue(mapping.deviceId, mapping.name);
-    holdingRegisters[addr] = parseInt(val) || 0;
+    holdingRegisters[addr] = mapping.scale
+      ? Math.round((parseFloat(val) || 0) * mapping.scale)
+      : parseInt(val) || 0;
   }
 }
 
@@ -68,9 +72,10 @@ module.exports = {
 
           const mapping = registerMap[registerAddr];
           if (mapping) {
-            console.log('[Modbus] FC06 WriteSingleRegister — addr=%d %s=%d', registerAddr, mapping.name, registerValue);
-            holdingRegisters[registerAddr] = registerValue;
-            storage.setValue(mapping.deviceId, mapping.name, registerValue);
+            const value = mapping.scale ? data.readInt16BE(10) / mapping.scale : registerValue;
+            console.log('[Modbus] FC06 WriteSingleRegister — addr=%d %s=%s', registerAddr, mapping.name, value);
+            holdingRegisters[registerAddr] = mapping.scale ? data.readInt16BE(10) : registerValue;
+            storage.setValue(mapping.deviceId, mapping.name, value);
           } else {
             console.log('[Modbus] FC06 WriteSingleRegister — addr=%d (unmapped)', registerAddr);
           }

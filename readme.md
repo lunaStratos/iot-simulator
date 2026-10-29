@@ -9,7 +9,7 @@ IoT 서버의 클라이언트 통신 테스트를 위한 가상 IoT 디바이스
 
 | 프로토콜 | 포트 | 설명 |
 |---------|------|------|
-| HTTP (REST) | 3000 | Express.js 기반 REST API |
+| HTTP (REST) | 3030 | Express.js 기반 REST API |
 | MQTT | 1883 | Pub/Sub 메시징 |
 | CoAP | 5683 | 경량 IoT 프로토콜 |
 | BACnet | 47808 | 빌딩 자동화 프로토콜 (node-bacnet) |
@@ -71,7 +71,7 @@ npm run build      # frontend → backend/public 으로 빌드
 
 ### 3. 접속
 
-- 웹 UI: http://localhost:3000
+- 웹 UI: http://localhost:3030
 - 웹 UI에서 프로토콜 선택 드롭다운으로 통신 프로토콜을 변경할 수 있습니다.
 
 ---
@@ -88,42 +88,42 @@ npm run build      # frontend → backend/public 으로 빌드
 
 ```bash
 # 보일러 상태
-curl http://localhost:3000/api/iot/status/1000
+curl http://localhost:3030/api/iot/status/1000
 
 # 스마트 LED 상태
-curl http://localhost:3000/api/iot/status/2000
+curl http://localhost:3030/api/iot/status/2000
 ```
 
 **디바이스 제어**
 
 ```bash
 # 보일러 전원 ON
-curl -X PUT http://localhost:3000/api/iot/control/1000 \
+curl -X PUT http://localhost:3030/api/iot/control/1000 \
   -H "Content-Type: application/json" \
   -d '{"deviceControl": 1, "deviceControlName": "switch"}'
 
 # 보일러 희망온도 설정
-curl -X PUT http://localhost:3000/api/iot/control/1000 \
+curl -X PUT http://localhost:3030/api/iot/control/1000 \
   -H "Content-Type: application/json" \
   -d '{"deviceControl": 25, "deviceControlName": "hope_temperature"}'
 
 # 보일러 모드 변경 (1:난방, 2:절약, 3:샤워, 4:온돌, 5:외출, 6:고온)
-curl -X PUT http://localhost:3000/api/iot/control/1000 \
+curl -X PUT http://localhost:3030/api/iot/control/1000 \
   -H "Content-Type: application/json" \
   -d '{"deviceControl": 1, "deviceControlName": "mode"}'
 
 # 스마트 LED 전원 ON
-curl -X PUT http://localhost:3000/api/iot/control/2000 \
+curl -X PUT http://localhost:3030/api/iot/control/2000 \
   -H "Content-Type: application/json" \
   -d '{"deviceControl": 1, "deviceControlName": "switch"}'
 
 # 스마트 LED 밝기 설정 (0~100)
-curl -X PUT http://localhost:3000/api/iot/control/2000 \
+curl -X PUT http://localhost:3030/api/iot/control/2000 \
   -H "Content-Type: application/json" \
   -d '{"deviceControl": 80, "deviceControlName": "strength"}'
 
 # 스마트 LED 색상 변경
-curl -X PUT http://localhost:3000/api/iot/control/2000 \
+curl -X PUT http://localhost:3030/api/iot/control/2000 \
   -H "Content-Type: application/json" \
   -d '{"deviceControl": "#f05348", "deviceControlName": "color"}'
 ```
@@ -131,11 +131,11 @@ curl -X PUT http://localhost:3000/api/iot/control/2000 \
 **프로토콜 경유 조회** (백엔드가 해당 프로토콜 서버를 경유하여 통신)
 
 ```bash
-curl http://localhost:3000/api/iot/status/1000?protocol=mqtt
-curl http://localhost:3000/api/iot/status/1000?protocol=coap
-curl http://localhost:3000/api/iot/status/1000?protocol=bacnet
-curl http://localhost:3000/api/iot/status/1000?protocol=opcua
-curl http://localhost:3000/api/iot/status/1000?protocol=modbus
+curl http://localhost:3030/api/iot/status/1000?protocol=mqtt
+curl http://localhost:3030/api/iot/status/1000?protocol=coap
+curl http://localhost:3030/api/iot/status/1000?protocol=bacnet
+curl http://localhost:3030/api/iot/status/1000?protocol=opcua
+curl http://localhost:3030/api/iot/status/1000?protocol=modbus
 ```
 
 ---

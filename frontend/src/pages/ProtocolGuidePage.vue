@@ -8,7 +8,7 @@
       <n-tab-pane name="http" tab="HTTP (REST)">
         <n-card>
           <n-descriptions label-placement="left" :column="1" bordered size="small" style="margin-bottom: 16px;">
-            <n-descriptions-item label="포트">3000</n-descriptions-item>
+            <n-descriptions-item label="포트">3030</n-descriptions-item>
             <n-descriptions-item label="프로토콜">HTTP/1.1 REST</n-descriptions-item>
             <n-descriptions-item label="도구">curl, Postman, 브라우저</n-descriptions-item>
           </n-descriptions>
@@ -52,6 +52,7 @@
             <tbody>
               <tr><td><n-tag size="tiny">iot/status/1000</n-tag></td><td>보일러 상태 (pub)</td></tr>
               <tr><td><n-tag size="tiny">iot/status/2000</n-tag></td><td>스마트 LED 상태 (pub)</td></tr>
+              <tr><td><n-tag size="tiny">iot/status/3000</n-tag></td><td>온도계 상태 (pub)</td></tr>
               <tr><td><n-tag size="tiny">iot/control</n-tag></td><td>디바이스 제어 (sub)</td></tr>
             </tbody>
           </n-table>
@@ -161,32 +162,40 @@
 <script setup>
 // ── HTTP ──
 const httpStatus = `# 보일러 상태 조회
-curl http://localhost:3000/api/iot/status/1000
+curl http://localhost:3030/api/iot/status/1000
 
 # 스마트 LED 상태 조회
-curl http://localhost:3000/api/iot/status/2000`
+curl http://localhost:3030/api/iot/status/2000
+
+# 온도계 상태 조회
+curl http://localhost:3030/api/iot/status/3000`
 
 const httpControl = `# 보일러 전원 ON
-curl -X PUT http://localhost:3000/api/iot/control/1000 \\
+curl -X PUT http://localhost:3030/api/iot/control/1000 \\
   -H "Content-Type: application/json" \\
   -d '{"deviceControl": 1, "deviceControlName": "switch"}'
 
 # 보일러 희망온도 25도
-curl -X PUT http://localhost:3000/api/iot/control/1000 \\
+curl -X PUT http://localhost:3030/api/iot/control/1000 \\
   -H "Content-Type: application/json" \\
   -d '{"deviceControl": 25, "deviceControlName": "hope_temperature"}'
 
 # 스마트 LED 밝기 80
-curl -X PUT http://localhost:3000/api/iot/control/2000 \\
+curl -X PUT http://localhost:3030/api/iot/control/2000 \\
   -H "Content-Type: application/json" \\
-  -d '{"deviceControl": 80, "deviceControlName": "strength"}'`
+  -d '{"deviceControl": 80, "deviceControlName": "strength"}'
+
+# 온도계 온도 23.5도 설정
+curl -X PUT http://localhost:3030/api/iot/control/3000 \\
+  -H "Content-Type: application/json" \\
+  -d '{"deviceControl": 23.5, "deviceControlName": "temperature"}'`
 
 const httpProxy = `# 각 프로토콜 서버를 경유하여 조회
-curl http://localhost:3000/api/iot/status/1000?protocol=mqtt
-curl http://localhost:3000/api/iot/status/1000?protocol=coap
-curl http://localhost:3000/api/iot/status/1000?protocol=bacnet
-curl http://localhost:3000/api/iot/status/1000?protocol=opcua
-curl http://localhost:3000/api/iot/status/1000?protocol=modbus`
+curl http://localhost:3030/api/iot/status/1000?protocol=mqtt
+curl http://localhost:3030/api/iot/status/1000?protocol=coap
+curl http://localhost:3030/api/iot/status/1000?protocol=bacnet
+curl http://localhost:3030/api/iot/status/1000?protocol=opcua
+curl http://localhost:3030/api/iot/status/1000?protocol=modbus`
 
 // ── MQTT ──
 const mqttSubscribe = `# 보일러 상태 구독 (3초 간격 자동 발행)
@@ -231,7 +240,8 @@ const bacnetMap = [
   { device: '보일러(1000)', prop: 'switch', type: 'Binary Value (5)', instance: 1 },
   { device: '스마트LED(2000)', prop: 'strength', type: 'Analog Value (2)', instance: 10 },
   { device: '스마트LED(2000)', prop: 'mode', type: 'Analog Value (2)', instance: 11 },
-  { device: '스마트LED(2000)', prop: 'switch', type: 'Binary Value (5)', instance: 10 }
+  { device: '스마트LED(2000)', prop: 'switch', type: 'Binary Value (5)', instance: 10 },
+  { device: '온도계(3000)', prop: 'temperature (°C)', type: 'Analog Value (2)', instance: 20 }
 ]
 
 const bacnetCode = `const bacnet = require('node-bacnet');
@@ -262,12 +272,15 @@ const opcuaTree = `Objects/
        │    ├─ mode              (ns=1;s=1000_mode)
        │    ├─ switch            (ns=1;s=1000_switch)
        │    └─ status            (ns=1;s=1000_status)
-       └─ SmartSwitch_2000/
-            ├─ switch            (ns=1;s=2000_switch)
-            ├─ color             (ns=1;s=2000_color)
-            ├─ strength          (ns=1;s=2000_strength)
-            ├─ mode              (ns=1;s=2000_mode)
-            └─ status            (ns=1;s=2000_status)`
+       ├─ SmartSwitch_2000/
+       │    ├─ switch            (ns=1;s=2000_switch)
+       │    ├─ color             (ns=1;s=2000_color)
+       │    ├─ strength          (ns=1;s=2000_strength)
+       │    ├─ mode              (ns=1;s=2000_mode)
+       │    └─ status            (ns=1;s=2000_status)
+       └─ Thermometer_3000/
+            ├─ temperature       (ns=1;s=3000_temperature)
+            └─ status            (ns=1;s=3000_status)`
 
 const opcuaCode = `const opcua = require('node-opcua');
 
@@ -312,7 +325,8 @@ const modbusMap = [
   { addr: 4, device: '보일러(1000)', prop: 'switch' },
   { addr: 100, device: '스마트LED(2000)', prop: 'switch' },
   { addr: 101, device: '스마트LED(2000)', prop: 'strength' },
-  { addr: 102, device: '스마트LED(2000)', prop: 'mode' }
+  { addr: 102, device: '스마트LED(2000)', prop: 'mode' },
+  { addr: 200, device: '온도계(3000)', prop: 'temperature (×10, int16 — 245 = 24.5°C)' }
 ]
 
 const modbusModpoll = `# 보일러 레지스터 5개 읽기 (주소 0~4)

@@ -20,6 +20,17 @@ function load() {
   try {
     devices = JSON.parse(fs.readFileSync(DEVICES_PATH, 'utf-8'));
     values  = JSON.parse(fs.readFileSync(VALUES_PATH, 'utf-8'));
+
+    // values.json 에 값 세트가 없는 디바이스는 devices.json 의 defaults 로 초기화
+    let seeded = false;
+    for (const dev of devices) {
+      if (!values[String(dev.id)] && dev.defaults) {
+        values[String(dev.id)] = { ...dev.defaults };
+        seeded = true;
+      }
+    }
+    if (seeded) saveValues();
+
     console.info('[Storage] Loaded — %d devices, %d value sets', devices.length, Object.keys(values).length);
   } catch (e) {
     console.error('[Storage] Load failed —', e.message);

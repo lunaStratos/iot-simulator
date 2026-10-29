@@ -28,7 +28,7 @@ import { computed, h } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { darkTheme } from 'naive-ui'
 import { NIcon } from 'naive-ui'
-import { ServerOutline, FlameOutline, BulbOutline, BookOutline } from '@vicons/ionicons5'
+import { ServerOutline, FlameOutline, BulbOutline, ThermometerOutline, BookOutline } from '@vicons/ionicons5'
 
 const router = useRouter()
 const route = useRoute()
@@ -40,6 +40,7 @@ const renderIcon = (icon) => () => h(NIcon, null, { default: () => h(icon) })
 const menuOptions = [
   { label: 'Boiler', key: '/', icon: renderIcon(FlameOutline) },
   { label: 'Smart LED', key: '/switch', icon: renderIcon(BulbOutline) },
+  { label: 'Thermometer', key: '/thermometer', icon: renderIcon(ThermometerOutline) },
   { label: 'Protocol Guide', key: '/guide', icon: renderIcon(BookOutline) }
 ]
 

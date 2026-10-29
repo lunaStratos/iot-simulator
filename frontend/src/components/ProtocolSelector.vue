@@ -31,6 +31,6 @@ const protocols = [
 ]
 
 const portMap = {
-  http: 3000, mqtt: 1883, coap: 5683, bacnet: 47808, opcua: 4840, modbus: 5020
+  http: 3030, mqtt: 1883, coap: 5683, bacnet: 47808, opcua: 4840, modbus: 5020
 }
 </script>

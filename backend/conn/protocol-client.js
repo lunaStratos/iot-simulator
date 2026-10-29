@@ -87,9 +87,22 @@ function coapControl(deviceId, controlName, controlValue) {
 
 // ─── BACnet 클라이언트 ──────────────────────────────────
 const bacnet = require('node-bacnet');
-const bacnetClient = new bacnet();
+// 47808 은 BACnet 서버(bacnet-device.js)가 사용 — 같은 포트에 바인딩하면
+// 외부 요청이 이 클라이언트 소켓으로 전달되어 REJECT 응답이 나가므로 별도 포트 사용
+const BACNET_CLIENT_PORT = Number(process.env.BACNET_CLIENT_PORT) || 47809;
+const bacnetClient = new bacnet({ port: BACNET_CLIENT_PORT, reuseAddr: false });
+bacnetClient.on('error', (err) => console.error('[BACnet Client] error — %s', err.message));
 
-const BACNET_TARGET = 'localhost';
+// node-bacnet 서버는 127.0.0.1 발신 요청을 무시하므로 로컬 비루프백 IPv4 로 요청
+function localBacnetTarget() {
+  for (const addrs of Object.values(require('os').networkInterfaces())) {
+    for (const a of addrs || []) {
+      if (a.family === 'IPv4' && !a.internal) return a.address + ':47808';
+    }
+  }
+  return '127.0.0.1:47808';
+}
+const BACNET_TARGET = { address: localBacnetTarget() };
 const bacnetObjectMap = {
   1000: {
     hope_temperature: { type: 2, instance: 1 },
@@ -105,6 +118,9 @@ const bacnetObjectMap = {
     'switch': { type: 5, instance: 10 },
     color:    { type: 2, instance: 12 },
     status:   { type: 2, instance: 13 }
+  },
+  3000: {
+    temperature: { type: 2, instance: 20 }
   }
 };
 
@@ -149,6 +165,12 @@ function bacnetControl(deviceId, controlName, controlValue) {
 // ─── OPC-UA 클라이언트 ──────────────────────────────────
 let opcuaSession = null;
 
+const opcuaPropMap = {
+  1000: ['hope_temperature', 'now_temperature', 'humidity', 'mode', 'switch', 'status'],
+  2000: ['switch', 'color', 'strength', 'mode', 'status'],
+  3000: ['temperature', 'status']
+};
+
 async function getOpcuaSession() {
   if (opcuaSession) return opcuaSession;
 
@@ -160,9 +182,8 @@ async function getOpcuaSession() {
 
 async function opcuaStatus(deviceId) {
   const session = await getOpcuaSession();
-  const propNames = deviceId === '1000' || deviceId === 1000
-    ? ['hope_temperature', 'now_temperature', 'humidity', 'mode', 'switch', 'status']
-    : ['switch', 'color', 'strength', 'mode', 'status'];
+  const propNames = opcuaPropMap[deviceId];
+  if (!propNames) throw new Error('Unknown OPC-UA device');
 
   const results = {};
   for (const name of propNames) {
@@ -194,6 +215,9 @@ async function opcuaControl(deviceId, controlName, controlValue) {
 }
 
 // ─── Modbus TCP 클라이언트 ──────────────────────────────
+// 레지스터 값 = 실제 값 × scale (소수점 값은 정수로 스케일링, 음수는 int16)
+const modbusScale = { 3000: { temperature: 10 } };
+
 const modbusRegisterMap = {
   1000: {
     hope_temperature: 0,
@@ -206,6 +230,9 @@ const modbusRegisterMap = {
     'switch': 100,
     strength: 101,
     mode: 102
+  },
+  3000: {
+    temperature: 200
   }
 };
 
@@ -224,8 +251,11 @@ function modbusStatus(deviceId) {
 
       entries.forEach(([name, addr]) => {
         client.readHoldingRegisters(addr, 1, (err, data) => {
-          if (!err && data && data.data) {
-            results[name] = String(data.data[0]);
+          if (!err && data && data.buffer) {
+            const scale = (modbusScale[deviceId] || {})[name];
+            results[name] = scale
+              ? String(data.buffer.readInt16BE(0) / scale)
+              : String(data.data[0]);
           }
           pending--;
           if (pending === 0) {
@@ -250,7 +280,11 @@ function modbusControl(deviceId, controlName, controlValue) {
     const client = new ModbusRTU();
     client.connectTCP('localhost', { port: 5020 }, () => {
       client.setID(1);
-      client.writeRegister(regs[controlName], parseInt(controlValue) || 0, (err) => {
+      const scale = (modbusScale[deviceId] || {})[controlName];
+      const regValue = scale
+        ? Math.round(parseFloat(controlValue) * scale) & 0xFFFF
+        : parseInt(controlValue) || 0;
+      client.writeRegister(regs[controlName], regValue, (err) => {
         client.close(() => {});
         if (err) reject(err);
         else resolve({ status: 'ok' });

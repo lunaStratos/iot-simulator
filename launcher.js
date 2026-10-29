@@ -13,7 +13,7 @@ process.chdir(backendDir);
 const app = require('./backend/app');
 const http = require('http');
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3030;
 const server = http.createServer(app);
 
 server.listen(PORT, () => {
@@ -41,7 +41,7 @@ server.listen(PORT, () => {
 
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
-    console.error(`Port ${PORT} is already in use. Try: PORT=3001 node launcher.js`);
+    console.error(`Port ${PORT} is already in use. Try: PORT=3031 node launcher.js`);
   } else {
     console.error('Server error:', err.message);
   }

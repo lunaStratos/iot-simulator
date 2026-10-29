@@ -56,6 +56,10 @@ module.exports = {
               if (device) {
                 client.publish("iot/status/2000", JSON.stringify(device.json));
               }
+              const thermometer = storage.getDevice(3000);
+              if (thermometer) {
+                client.publish("iot/status/3000", JSON.stringify(thermometer.json));
+              }
             }, 3000);
         });
       });

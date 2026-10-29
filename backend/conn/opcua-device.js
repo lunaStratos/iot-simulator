@@ -25,57 +25,37 @@ module.exports = {
       browseName: 'IoTDevices'
     });
 
-    const boilerNode = namespace.addObject({
-      organizedBy: devicesFolder,
-      browseName: 'Boiler_1000'
-    });
+    const deviceNodes = [
+      { deviceId: 1000, browseName: 'Boiler_1000',      props: ['hope_temperature', 'now_temperature', 'humidity', 'mode', 'switch', 'status'] },
+      { deviceId: 2000, browseName: 'SmartSwitch_2000', props: ['switch', 'color', 'strength', 'mode', 'status'] },
+      { deviceId: 3000, browseName: 'Thermometer_3000', props: ['temperature', 'status'] }
+    ];
 
-    const boilerProps = ['hope_temperature', 'now_temperature', 'humidity', 'mode', 'switch', 'status'];
-    boilerProps.forEach((propName) => {
-      namespace.addVariable({
-        componentOf: boilerNode,
-        browseName: propName,
-        nodeId: `s=1000_${propName}`,
-        dataType: 'String',
-        value: {
-          get: function () {
-            const val = storage.getValue(1000, propName) || '';
-            return new opcua.Variant({ dataType: opcua.DataType.String, value: val });
-          },
-          set: function (variant) {
-            const writeValue = variant.value;
-            console.log('[OPC-UA] Write — deviceId=1000 %s=%s', propName, writeValue);
-            storage.setValue(1000, propName, writeValue);
-            return opcua.StatusCodes.Good;
-          }
-        }
+    deviceNodes.forEach(({ deviceId, browseName, props }) => {
+      const deviceNode = namespace.addObject({
+        organizedBy: devicesFolder,
+        browseName
       });
-    });
 
-    const switchNode = namespace.addObject({
-      organizedBy: devicesFolder,
-      browseName: 'SmartSwitch_2000'
-    });
-
-    const switchProps = ['switch', 'color', 'strength', 'mode', 'status'];
-    switchProps.forEach((propName) => {
-      namespace.addVariable({
-        componentOf: switchNode,
-        browseName: propName,
-        nodeId: `s=2000_${propName}`,
-        dataType: 'String',
-        value: {
-          get: function () {
-            const val = storage.getValue(2000, propName) || '';
-            return new opcua.Variant({ dataType: opcua.DataType.String, value: val });
-          },
-          set: function (variant) {
-            const writeValue = variant.value;
-            console.log('[OPC-UA] Write — deviceId=2000 %s=%s', propName, writeValue);
-            storage.setValue(2000, propName, writeValue);
-            return opcua.StatusCodes.Good;
+      props.forEach((propName) => {
+        namespace.addVariable({
+          componentOf: deviceNode,
+          browseName: propName,
+          nodeId: `s=${deviceId}_${propName}`,
+          dataType: 'String',
+          value: {
+            get: function () {
+              const val = storage.getValue(deviceId, propName) || '';
+              return new opcua.Variant({ dataType: opcua.DataType.String, value: val });
+            },
+            set: function (variant) {
+              const writeValue = variant.value;
+              console.log('[OPC-UA] Write — deviceId=%d %s=%s', deviceId, propName, writeValue);
+              storage.setValue(deviceId, propName, writeValue);
+              return opcua.StatusCodes.Good;
+            }
           }
-        }
+        });
       });
     });
 

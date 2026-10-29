@@ -6,7 +6,7 @@ const protocolClient = require('../conn/protocol-client');
 router.get('/protocols', function(req, res) {
     res.json({
         protocols: [
-            { id: 'http', name: 'HTTP (REST)', port: 3000 },
+            { id: 'http', name: 'HTTP (REST)', port: 3030 },
             { id: 'mqtt', name: 'MQTT', port: 1883 },
             { id: 'coap', name: 'CoAP', port: 5683 },
             { id: 'bacnet', name: 'BACnet', port: 47808 },
