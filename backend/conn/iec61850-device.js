@@ -38,6 +38,9 @@ function buildResponse(serviceType, payload) {
 
 module.exports = {
 
+  portNumber,
+  pathMap,
+
   connect() {
     const serverTCP = net.createServer((socket) => {
       console.log('[IEC61850] Client connected — %s:%s', socket.remoteAddress, socket.remotePort);

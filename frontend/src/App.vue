@@ -11,7 +11,7 @@
           <n-menu mode="horizontal" :value="currentRoute" :options="menuOptions" @update:value="onMenuSelect" />
           <div style="margin-left: auto;">
             <n-tag :bordered="false" type="info" size="small" round>
-              5 Protocols
+              10 Protocols
             </n-tag>
           </div>
         </n-layout-header>

@@ -13,6 +13,9 @@ const VALUES_PATH  = path.join(__dirname, '../data/values.json');
 
 const events = new EventEmitter();
 
+// 외부 컨트롤러(HomeKit, Matter, OPC-UA 등)에 표시되는 이름 접두어
+const SIMULATOR_NAME = 'IoT Simulator';
+
 let devices = [];
 let values  = {};
 
@@ -71,6 +74,18 @@ module.exports = {
       serialNo: dev.serialNo,
       json: { ...vals }
     };
+  },
+
+  SIMULATOR_NAME,
+
+  /**
+   * 외부 표시 이름 — "IoT Simulator(디바이스명)"
+   * @param {string|number} deviceId
+   * @returns {string}
+   */
+  getDisplayName(deviceId) {
+    const dev = devices.find(d => d.id === Number(deviceId));
+    return `${SIMULATOR_NAME}(${dev ? dev.name : deviceId})`;
   },
 
   /**

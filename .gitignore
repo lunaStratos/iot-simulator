@@ -136,3 +136,7 @@ backend/public/static
 /.claude
 .claude
 .DS_Store
+
+# HomeKit / Matter 페어링·패브릭 저장소
+backend/data/homekit/
+backend/data/matter/

@@ -29,6 +29,9 @@ function refreshRegisters() {
 
 module.exports = {
 
+  portNumber,
+  registerMap,
+
   connect() {
     refreshRegisters();
     setInterval(refreshRegisters, 3000);

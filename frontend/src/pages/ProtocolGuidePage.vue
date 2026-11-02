@@ -220,6 +220,67 @@
           <n-code :code="iec61850Code" language="javascript" word-wrap />
         </n-card>
       </n-tab-pane>
+
+      <!-- HomeKit -->
+      <n-tab-pane name="homekit" tab="HomeKit">
+        <n-card>
+          <n-descriptions label-placement="left" :column="1" bordered size="small" style="margin-bottom: 16px;">
+            <n-descriptions-item label="포트">51827 (TCP, mDNS _hap._tcp 광고)</n-descriptions-item>
+            <n-descriptions-item label="프로토콜">HomeKit Accessory Protocol (hap-nodejs 브리지)</n-descriptions-item>
+            <n-descriptions-item label="페어링 PIN">031-45-154</n-descriptions-item>
+            <n-descriptions-item label="도구">iPhone 홈 앱, Eve, Home Assistant(HomeKit Device), HAP 클라이언트</n-descriptions-item>
+            <n-descriptions-item label="참고">
+              <n-tag type="warning" size="small" :bordered="false">insecure 모드 — 페어링 없이 HTTP 접근 허용 (HOMEKIT_INSECURE=false 로 해제)</n-tag>
+            </n-descriptions-item>
+          </n-descriptions>
+
+          <n-h4>액세서리 매핑</n-h4>
+          <n-table :bordered="true" :single-line="false" size="small">
+            <thead><tr><th>디바이스 (Service)</th><th>Characteristic</th><th>속성</th></tr></thead>
+            <tbody>
+              <tr v-for="row in homekitMap" :key="row.device + row.char">
+                <td>{{ row.device }}</td>
+                <td><n-tag size="tiny">{{ row.char }}</n-tag></td>
+                <td>{{ row.prop }}</td>
+              </tr>
+            </tbody>
+          </n-table>
+
+          <n-h4 style="margin-top: 16px;">HAP HTTP 예제 (insecure 모드)</n-h4>
+          <n-code :code="homekitCode" language="bash" word-wrap />
+        </n-card>
+      </n-tab-pane>
+
+      <!-- Matter -->
+      <n-tab-pane name="matter" tab="Matter">
+        <n-card>
+          <n-descriptions label-placement="left" :column="1" bordered size="small" style="margin-bottom: 16px;">
+            <n-descriptions-item label="포트">5541 (UDP, mDNS _matterc._udp 광고)</n-descriptions-item>
+            <n-descriptions-item label="프로토콜">Matter 1.x over IPv6/UDP (matter.js 브리지)</n-descriptions-item>
+            <n-descriptions-item label="수동 페어링 코드">3497-021-2338</n-descriptions-item>
+            <n-descriptions-item label="Passcode / Discriminator">20202022 / 3850</n-descriptions-item>
+            <n-descriptions-item label="도구">Apple 홈, Google Home, Home Assistant, chip-tool</n-descriptions-item>
+            <n-descriptions-item label="참고">
+              <n-tag type="info" size="small" :bordered="false">테스트 Vendor ID(0xFFF1) — 컨트롤러에서 "인증되지 않은 기기" 경고 후 추가</n-tag>
+            </n-descriptions-item>
+          </n-descriptions>
+
+          <n-h4>엔드포인트 매핑</n-h4>
+          <n-table :bordered="true" :single-line="false" size="small">
+            <thead><tr><th>디바이스 (Device Type)</th><th>Cluster.Attribute</th><th>속성</th></tr></thead>
+            <tbody>
+              <tr v-for="row in matterMap" :key="row.device + row.attr">
+                <td>{{ row.device }}</td>
+                <td><n-tag size="tiny">{{ row.attr }}</n-tag></td>
+                <td>{{ row.prop }}</td>
+              </tr>
+            </tbody>
+          </n-table>
+
+          <n-h4 style="margin-top: 16px;">chip-tool 예제</n-h4>
+          <n-code :code="matterCode" language="bash" word-wrap />
+        </n-card>
+      </n-tab-pane>
     </n-tabs>
   </div>
 </template>
@@ -262,7 +323,9 @@ curl http://localhost:41234/api/iot/status/1000?protocol=bacnet
 curl http://localhost:41234/api/iot/status/1000?protocol=opcua
 curl http://localhost:41234/api/iot/status/1000?protocol=modbus
 curl http://localhost:41234/api/iot/status/1000?protocol=dnp3
-curl http://localhost:41234/api/iot/status/1000?protocol=iec61850`
+curl http://localhost:41234/api/iot/status/1000?protocol=iec61850
+curl http://localhost:41234/api/iot/status/1000?protocol=homekit
+curl http://localhost:41234/api/iot/status/1000?protocol=matter`
 
 // ── MQTT ──
 const mqttSubscribe = `# 보일러 상태 구독 (3초 간격 자동 발행)
@@ -511,4 +574,59 @@ sendRequest(0x02, {
   path: 'Boiler/TTMP1.TmpSp.setMag',
   value: '25'
 });`
+
+// ── HomeKit ──
+const homekitMap = [
+  { device: '보일러(1000) Thermostat', char: 'TargetHeatingCoolingState', prop: 'switch (0:OFF, 1:HEAT)' },
+  { device: '보일러(1000) Thermostat', char: 'TargetTemperature', prop: 'hope_temperature (16~36)' },
+  { device: '보일러(1000) Thermostat', char: 'CurrentTemperature', prop: 'now_temperature (읽기 전용)' },
+  { device: '보일러(1000) Thermostat', char: 'CurrentRelativeHumidity', prop: 'humidity (읽기 전용)' },
+  { device: '스마트LED(2000) Lightbulb', char: 'On', prop: 'switch' },
+  { device: '스마트LED(2000) Lightbulb', char: 'Brightness', prop: 'strength' },
+  { device: '스마트LED(2000) Lightbulb', char: 'Hue + Saturation', prop: 'color (HEX 변환)' },
+  { device: '온도계(3000) TemperatureSensor', char: 'CurrentTemperature', prop: 'temperature (읽기 전용)' },
+  { device: '공통 (커스텀)', char: 'Operating Mode E8634C31-0001-…', prop: 'mode' },
+  { device: '공통 (커스텀)', char: 'Device Status E8634C31-0002-…', prop: 'status' }
+]
+
+const homekitCode = `# 액세서리 / Characteristic 목록 (aid, iid 확인)
+curl http://localhost:51827/accessories
+
+# 읽기 — aid.iid 를 콤마로 나열 (보일러 현재/희망 온도)
+curl "http://localhost:51827/characteristics?id=2.12,2.13"
+
+# 쓰기 — Authorization 헤더에 PIN 필요
+curl -X PUT http://localhost:51827/characteristics \\
+  -H "Content-Type: application/hap+json" \\
+  -H "Authorization: 031-45-154" \\
+  -d '{"characteristics":[{"aid":2,"iid":13,"value":25}]}'
+
+# iPhone 홈 앱: 액세서리 추가 → 코드 직접 입력 → 031-45-154`
+
+// ── Matter ──
+const matterMap = [
+  { device: '보일러(1000) Thermostat', attr: 'Thermostat.SystemMode', prop: 'switch (0:Off, 4:Heat)' },
+  { device: '보일러(1000) Thermostat', attr: 'Thermostat.OccupiedHeatingSetpoint', prop: 'hope_temperature (×100)' },
+  { device: '보일러(1000) Thermostat', attr: 'Thermostat.LocalTemperature', prop: 'now_temperature (×100)' },
+  { device: '보일러(1000) Thermostat', attr: 'RelativeHumidityMeasurement.MeasuredValue', prop: 'humidity (×100)' },
+  { device: '보일러(1000) Thermostat', attr: 'ModeSelect.CurrentMode', prop: 'mode (1~6)' },
+  { device: '스마트LED(2000) Extended Color Light', attr: 'OnOff.OnOff', prop: 'switch' },
+  { device: '스마트LED(2000) Extended Color Light', attr: 'LevelControl.CurrentLevel', prop: 'strength (0~100 ↔ 1~254)' },
+  { device: '스마트LED(2000) Extended Color Light', attr: 'ColorControl.CurrentHue / CurrentSaturation', prop: 'color (HEX 변환)' },
+  { device: '스마트LED(2000) Extended Color Light', attr: 'ModeSelect.CurrentMode', prop: 'mode (1~4)' },
+  { device: '온도계(3000) Temperature Sensor', attr: 'TemperatureMeasurement.MeasuredValue', prop: 'temperature (×100)' }
+]
+
+const matterCode = `# 커미셔닝 (노드 ID 1 로 등록)
+chip-tool pairing code 1 34970212338
+
+# 브리지 엔드포인트 확인 (Descriptor.PartsList)
+chip-tool descriptor read parts-list 1 0
+
+# 읽기 — 보일러 희망온도 (엔드포인트 번호는 parts-list 로 확인)
+chip-tool thermostat read occupied-heating-setpoint 1 <boilerEp>
+
+# 쓰기 — 스마트 LED 켜기 / 밝기 80%
+chip-tool onoff on 1 <ledEp>
+chip-tool levelcontrol move-to-level 203 0 0 0 1 <ledEp>`
 </script>

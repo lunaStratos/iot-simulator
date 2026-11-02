@@ -32,6 +32,8 @@ server.listen(PORT, () => {
   console.log('  ║    Modbus TCP: localhost:5020         ║');
   console.log('  ║    DNP3      : localhost:20000        ║');
   console.log('  ║    IEC 61850 : localhost:10200        ║');
+  console.log('  ║    HomeKit   : localhost:51827        ║');
+  console.log('  ║    Matter    : localhost:5541 (UDP)   ║');
   console.log('  ║                                       ║');
   console.log('  ║  Press Ctrl+C to stop                 ║');
   console.log('  ╚═══════════════════════════════════════╝');

@@ -169,6 +169,11 @@ function errorValue(errorClass, errorCode) {
 
 module.exports = {
 
+  portNumber,
+  DEVICE_INSTANCE,
+  DEVICE_NAME,
+  deviceObjectMap,
+
   connect() {
     const server = new bacnet({ port: portNumber });
     console.info('[BACnet] Server started — port=%d deviceInstance=%d', portNumber, DEVICE_INSTANCE);

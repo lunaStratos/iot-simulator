@@ -1,6 +1,6 @@
 <template>
   <div>
-    <ProtocolSelector v-model="selectedProtocol" />
+    <ProtocolSelector v-model="selectedProtocol" device-id="1000" />
 
     <n-grid :cols="2" :x-gap="16" :y-gap="16" responsive="screen" item-responsive>
       <!-- 왼쪽: 디바이스 이미지 -->
@@ -126,7 +126,8 @@ const tempColor = (v) => {
 
 useDeviceSocket('1000', selectedProtocol, (data) => {
   if (data.device) {
-    Object.assign(device, data.device)
+    // json 은 교체하지 않고 병합 — 프로토콜이 제공하지 않는 속성(status 등)은 이전 값 유지
+    Object.assign(device, { ...data.device, json: device.json })
     if (data.device.json) {
       Object.assign(device.json, data.device.json)
       control.switch = data.device.json.switch

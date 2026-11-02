@@ -48,6 +48,10 @@ function getPointMap(objGroup) {
 
 module.exports = {
 
+  portNumber,
+  analogInputMap,
+  binaryInputMap,
+
   connect() {
     const serverTCP = net.createServer((socket) => {
       console.log('[DNP3] Client connected — %s:%s', socket.remoteAddress, socket.remotePort);

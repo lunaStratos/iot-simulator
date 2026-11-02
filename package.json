@@ -1,7 +1,7 @@
 {
   "name": "iot-simulator",
   "version": "1.0.0",
-  "description": "IoT Device Simulator — 8 protocols (HTTP, MQTT, CoAP, BACnet, OPC-UA, Modbus, DNP3, IEC 61850)",
+  "description": "IoT Device Simulator — 10 protocols (HTTP, MQTT, CoAP, BACnet, OPC-UA, Modbus, DNP3, IEC 61850, HomeKit, Matter)",
   "private": true,
   "main": "launcher.js",
   "scripts": {

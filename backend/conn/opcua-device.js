@@ -34,7 +34,8 @@ module.exports = {
     deviceNodes.forEach(({ deviceId, browseName, props }) => {
       const deviceNode = namespace.addObject({
         organizedBy: devicesFolder,
-        browseName
+        browseName,
+        displayName: storage.getDisplayName(deviceId)
       });
 
       props.forEach((propName) => {

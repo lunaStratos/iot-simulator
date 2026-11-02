@@ -15,6 +15,10 @@ IoT 서버의 클라이언트 통신 테스트를 위한 가상 IoT 디바이스
 | BACnet | 47808 | 빌딩 자동화 프로토콜 (node-bacnet) |
 | OPC-UA | 4840 | 산업 자동화 프로토콜 (node-opcua) |
 | Modbus TCP | 5020 | 산업용 시리얼 통신 프로토콜 (modbus-serial) |
+| DNP3 | 20000 | 전력/SCADA 프로토콜 (간소화 구현) |
+| IEC 61850 | 10200 | 변전소 자동화 MMS (간소화 구현) |
+| HomeKit (HAP) | 51827 | Apple 스마트홈 프로토콜 (hap-nodejs) |
+| Matter | 5541/UDP | CSA 스마트홈 표준 (matter.js) |
 
 ### 시뮬레이션 디바이스
 
@@ -22,6 +26,7 @@ IoT 서버의 클라이언트 통신 테스트를 위한 가상 IoT 디바이스
 |---------|-----|------|
 | 보일러 | 1000 | hope_temperature, now_temperature, humidity, mode, switch, status |
 | 스마트 LED | 2000 | switch, color, strength, mode, status |
+| 온도계 | 3000 | temperature, status |
 
 ### 기술 스택
 
@@ -136,6 +141,10 @@ curl http://localhost:41234/api/iot/status/1000?protocol=coap
 curl http://localhost:41234/api/iot/status/1000?protocol=bacnet
 curl http://localhost:41234/api/iot/status/1000?protocol=opcua
 curl http://localhost:41234/api/iot/status/1000?protocol=modbus
+curl http://localhost:41234/api/iot/status/1000?protocol=dnp3
+curl http://localhost:41234/api/iot/status/1000?protocol=iec61850
+curl http://localhost:41234/api/iot/status/1000?protocol=homekit
+curl http://localhost:41234/api/iot/status/1000?protocol=matter
 ```
 
 ---
@@ -366,6 +375,89 @@ client.connectTCP('localhost', { port: 5020 }, () => {
 
 ---
 
+### HomeKit (HAP)
+
+포트: **51827** (TCP, mDNS `_hap._tcp` 로 광고) · 페어링 PIN: **031-45-154**
+
+`hap-nodejs` 로 구현한 실제 HomeKit 브리지입니다. iPhone 홈 앱에서 *액세서리 추가 → 코드 직접 입력* 으로 페어링할 수 있습니다.
+브리지는 `IoT Simulator`, 각 액세서리는 `IoT Simulator(디바이스명)` (예: `IoT Simulator(보일러1)`) 으로 표시됩니다. 디바이스명은 `backend/data/devices.json` 의 `name` 입니다.
+
+**액세서리 매핑**
+
+| 디바이스 (Service) | Characteristic | 속성 |
+|-------------------|----------------|------|
+| 보일러(1000) Thermostat | TargetHeatingCoolingState | switch (0:OFF, 1:HEAT) |
+| 보일러(1000) Thermostat | TargetTemperature | hope_temperature (16~36) |
+| 보일러(1000) Thermostat | CurrentTemperature | now_temperature (읽기 전용) |
+| 보일러(1000) Thermostat | CurrentRelativeHumidity | humidity (읽기 전용) |
+| 스마트 LED(2000) Lightbulb | On / Brightness | switch / strength |
+| 스마트 LED(2000) Lightbulb | Hue + Saturation | color (HEX ↔ HS 변환) |
+| 온도계(3000) TemperatureSensor | CurrentTemperature | temperature (읽기 전용) |
+| 공통 (커스텀) | Operating Mode `E8634C31-0001-4A0B-9D8E-3C1F5A7B2D01` | mode |
+| 공통 (커스텀) | Device Status `E8634C31-0002-4A0B-9D8E-3C1F5A7B2D01` | status |
+
+**HAP HTTP 직접 접근 (insecure 모드)**
+
+시뮬레이터는 페어링 없이 테스트할 수 있도록 insecure 모드로 공개합니다. 읽기는 인증 없이, 쓰기는 `Authorization: <PIN>` 헤더가 필요합니다.
+`HOMEKIT_INSECURE=false` 로 끄면 페어링된 컨트롤러만 접근할 수 있습니다 (이 경우 `?protocol=homekit` 경유 조회는 스토리지로 fallback).
+
+```bash
+curl http://localhost:51827/accessories                          # aid / iid 확인
+curl "http://localhost:51827/characteristics?id=2.12,2.13"       # 보일러 현재/희망 온도
+curl -X PUT http://localhost:51827/characteristics \
+  -H "Content-Type: application/hap+json" -H "Authorization: 031-45-154" \
+  -d '{"characteristics":[{"aid":2,"iid":13,"value":25}]}'       # 희망온도 25
+```
+
+---
+
+### Matter
+
+포트: **5541/UDP** (mDNS `_matterc._udp` 로 광고) · 수동 페어링 코드: **3497-021-2338** (passcode 20202022, discriminator 3850)
+
+`matter.js` 로 구현한 실제 Matter 브리지(Aggregator)입니다. Apple 홈, Google Home, Home Assistant, chip-tool 로 커미셔닝할 수 있습니다.
+브리지 노드는 `IoT Simulator`, 각 브리지드 디바이스의 NodeLabel 은 `IoT Simulator(디바이스명)` 으로 표시됩니다.
+테스트용 Vendor ID(0xFFF1)를 사용하므로 컨트롤러에서 "인증되지 않은 기기" 경고가 표시됩니다.
+
+**엔드포인트 매핑**
+
+| 디바이스 (Device Type) | Cluster.Attribute | 속성 |
+|-----------------------|-------------------|------|
+| 보일러(1000) Thermostat | Thermostat.SystemMode | switch (0:Off, 4:Heat) |
+| 보일러(1000) Thermostat | Thermostat.OccupiedHeatingSetpoint | hope_temperature (×100) |
+| 보일러(1000) Thermostat | Thermostat.LocalTemperature | now_temperature (×100) |
+| 보일러(1000) Thermostat | RelativeHumidityMeasurement.MeasuredValue | humidity (×100) |
+| 보일러(1000) Thermostat | ModeSelect.CurrentMode | mode (1~6) |
+| 스마트 LED(2000) Extended Color Light | OnOff.OnOff | switch |
+| 스마트 LED(2000) Extended Color Light | LevelControl.CurrentLevel | strength (0~100 ↔ 1~254) |
+| 스마트 LED(2000) Extended Color Light | ColorControl.CurrentHue / CurrentSaturation | color (HEX ↔ HS 변환) |
+| 스마트 LED(2000) Extended Color Light | ModeSelect.CurrentMode | mode (1~4) |
+| 온도계(3000) Temperature Sensor | TemperatureMeasurement.MeasuredValue | temperature (×100) |
+
+**chip-tool 예제**
+
+```bash
+chip-tool pairing code 1 34970212338                         # 커미셔닝 (노드 ID 1)
+chip-tool descriptor read parts-list 1 0                     # 브리지 엔드포인트 확인
+chip-tool thermostat read occupied-heating-setpoint 1 <boilerEp>
+chip-tool onoff on 1 <ledEp>
+```
+
+> Matter 는 커미셔닝 없이 외부에서 읽고 쓸 수 없으므로, `?protocol=matter` 경유 조회는 백엔드 내부에서 Matter 엔드포인트 데이터 모델(클러스터 state)에 직접 접근합니다.
+
+**환경 변수**
+
+| 변수 | 기본값 | 설명 |
+|------|--------|------|
+| `HOMEKIT_PORT` / `HOMEKIT_PIN` / `HOMEKIT_USERNAME` | 51827 / 031-45-154 / CC:22:3D:E3:CE:30 | HAP 포트, PIN, 브리지 MAC |
+| `HOMEKIT_INSECURE` | true | 페어링 없는 HTTP 접근 허용 |
+| `MATTER_PORT` / `MATTER_PASSCODE` / `MATTER_DISCRIMINATOR` | 5541 / 20202022 / 3850 | Matter 포트, 커미셔닝 코드 |
+| `MATTER_LOG_LEVEL` | notice | matter.js 로그 레벨 |
+
+페어링 정보와 패브릭은 `backend/data/homekit/`, `backend/data/matter/` 에 저장됩니다. 페어링을 초기화하려면 두 폴더를 삭제하세요.
+
+---
+
 ## 프로젝트 구조
 
 ```
@@ -388,6 +480,10 @@ iot-simulator/
 │   │   ├── bacnet-device.js # BACnet 서버 핸들러
 │   │   ├── opcua-device.js  # OPC-UA 서버 핸들러
 │   │   ├── modbus-device.js # Modbus TCP 서버 핸들러
+│   │   ├── dnp3-device.js   # DNP3 서버 핸들러
+│   │   ├── iec61850-device.js # IEC 61850 서버 핸들러
+│   │   ├── homekit-device.js  # HomeKit(HAP) 브리지
+│   │   ├── matter-device.js   # Matter 브리지
 │   │   └── protocol-client.js # 프로토콜 클라이언트 (라우터→서버 통신)
 │   ├── routes/
 │   │   ├── index.js

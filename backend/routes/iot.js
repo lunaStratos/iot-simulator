@@ -2,20 +2,10 @@ const express = require('express');
 const router = express.Router();
 const storage = require('../config/storage');
 const protocolClient = require('../conn/protocol-client');
+const connectionInfo = require('../config/connection-info');
 
 router.get('/protocols', function(req, res) {
-    res.json({
-        protocols: [
-            { id: 'http', name: 'HTTP (REST)', port: 41234 },
-            { id: 'mqtt', name: 'MQTT', port: 1883 },
-            { id: 'coap', name: 'CoAP', port: 5683 },
-            { id: 'bacnet', name: 'BACnet', port: 47808 },
-            { id: 'opcua', name: 'OPC-UA', port: 4840 },
-            { id: 'modbus', name: 'Modbus TCP', port: 5020 },
-            { id: 'dnp3', name: 'DNP3', port: 20000 },
-            { id: 'iec61850', name: 'IEC 61850 (MMS)', port: 10200 }
-        ]
-    });
+    res.json(connectionInfo.build(req.query.deviceId, req.socket.localPort));
 });
 
 router.get('/status/:deviceId', function(req, res) {

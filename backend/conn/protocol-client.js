@@ -492,11 +492,125 @@ function iec61850Control(deviceId, controlName, controlValue) {
   return iec61850Send(0x02, { path: paths[controlName], value: String(controlValue) });
 }
 
+// ─── HomeKit (HAP) 클라이언트 ──────────────────────────
+// homekit-device.js 가 insecure 모드로 공개 — 페어링 없이 HAP HTTP 로 접근
+const http = require('http');
+const hapUuid = require('hap-nodejs').uuid;
+const homekitHandler = require('./homekit-device');
+const { hexToHs, hsToHex } = require('../util/color');
+
+function hapRequest(method, urlPath, body) {
+  return new Promise((resolve, reject) => {
+    const payload = body ? JSON.stringify(body) : null;
+    const req = http.request({
+      host: 'localhost',
+      port: homekitHandler.portNumber,
+      path: urlPath,
+      method,
+      headers: {
+        'Content-Type': 'application/hap+json',
+        Authorization: homekitHandler.PINCODE,
+        ...(payload ? { 'Content-Length': Buffer.byteLength(payload) } : {})
+      },
+      timeout: 5000
+    }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        if (res.statusCode === 204) return resolve(null);
+        let json;
+        try { json = data ? JSON.parse(data) : null; }
+        catch (e) { return reject(e); }
+        // 207 Multi-Status — 개별 Characteristic 오류
+        const failed = json && json.characteristics && json.characteristics.find((c) => c.status);
+        if (res.statusCode >= 400 || failed) {
+          return reject(new Error('HAP error — http=' + res.statusCode + ' status=' + (failed ? failed.status : json && json.status)));
+        }
+        resolve(json);
+      });
+    });
+    req.on('timeout', () => req.destroy(new Error('HomeKit timeout')));
+    req.on('error', reject);
+    if (payload) req.write(payload);
+    req.end();
+  });
+}
+
+// deviceId → [{ aid, iid, def }]  (/accessories 에서 SerialNumber 로 매칭, 1회 캐시)
+let hapIndex = null;
+const HAP_SERIAL_TYPE = hapUuid.toShortForm(require('hap-nodejs').Characteristic.SerialNumber.UUID);
+
+async function getHapIndex() {
+  if (hapIndex) return hapIndex;
+  const { accessories } = await hapRequest('GET', '/accessories');
+  const index = {};
+
+  homekitHandler.deviceDefs.forEach(({ deviceId, chars }) => {
+    const serial = homekitHandler.SERIAL_PREFIX + deviceId;
+    const acc = accessories.find((a) => a.services.some((s) =>
+      s.characteristics.some((c) => c.type === HAP_SERIAL_TYPE && c.value === serial)));
+    if (!acc) return;
+
+    const all = acc.services.flatMap((s) => s.characteristics);
+    index[deviceId] = chars.filter((def) => !def.mirror).map((def) => {
+      const type = hapUuid.toShortForm(def.type.UUID);
+      const c = all.find((x) => x.type === type);
+      return c ? { aid: acc.aid, iid: c.iid, def } : null;
+    }).filter(Boolean);
+  });
+
+  hapIndex = index;
+  return hapIndex;
+}
+
+async function homekitStatus(deviceId) {
+  const entries = (await getHapIndex())[Number(deviceId)];
+  if (!entries) throw new Error('Unknown HomeKit device');
+
+  const ids = entries.map((e) => e.aid + '.' + e.iid).join(',');
+  let result;
+  try {
+    result = await hapRequest('GET', '/characteristics?id=' + ids);
+  } catch (e) {
+    hapIndex = null; // 액세서리 구성이 바뀌었을 수 있으므로 다음 요청에서 재조회
+    throw e;
+  }
+
+  const results = {};
+  const color = {};
+  result.characteristics.forEach(({ aid, iid, value }) => {
+    const { def } = entries.find((e) => e.aid === aid && e.iid === iid);
+    if (def.part) color[def.part] = value;
+    else results[def.prop] = def.fromHap ? def.fromHap(value) : String(value);
+  });
+  if (color.hue !== undefined) results.color = hsToHex(color.hue, color.saturation);
+
+  return { device: { id: Number(deviceId), json: results }, protocol: 'homekit' };
+}
+
+async function homekitControl(deviceId, controlName, controlValue) {
+  const entries = ((await getHapIndex())[Number(deviceId)] || []).filter((e) => e.def.prop === controlName);
+  if (entries.length === 0) throw new Error('Unknown HomeKit characteristic');
+  if (entries.some((e) => !e.def.fromHap)) throw new Error('HomeKit characteristic is read-only');
+
+  const hs = controlName === 'color' ? hexToHs(controlValue) : null;
+  const characteristics = entries.map(({ aid, iid, def }) => ({
+    aid, iid, value: hs ? hs[def.part] : def.toHap(String(controlValue))
+  }));
+
+  await hapRequest('PUT', '/characteristics', { characteristics });
+  return { status: 'ok' };
+}
+
+// ─── Matter 클라이언트 ─────────────────────────────────
+// 커미셔닝 없이는 외부 접근이 불가하므로 Matter 엔드포인트 데이터 모델에 직접 접근
+const matterHandler = require('./matter-device');
+
 // ─── 통합 인터페이스 ────────────────────────────────────
 module.exports = {
   /**
    * 디바이스 상태 조회
-   * @param {string} protocol - http|mqtt|coap|bacnet|opcua|modbus
+   * @param {string} protocol - http|mqtt|coap|bacnet|opcua|modbus|dnp3|iec61850|homekit|matter
    * @param {string|number} deviceId
    * @returns {Promise<object>}
    */
@@ -509,6 +623,8 @@ module.exports = {
       case 'modbus':   return modbusStatus(deviceId);
       case 'dnp3':     return dnp3Status(deviceId);
       case 'iec61850': return iec61850Status(deviceId);
+      case 'homekit':  return homekitStatus(deviceId);
+      case 'matter':   return matterHandler.readStatus(deviceId);
       default:         return Promise.reject(new Error('use-http'));
     }
   },
@@ -530,6 +646,8 @@ module.exports = {
       case 'modbus':   return modbusControl(deviceId, controlName, controlValue);
       case 'dnp3':     return dnp3Control(deviceId, controlName, controlValue);
       case 'iec61850': return iec61850Control(deviceId, controlName, controlValue);
+      case 'homekit':  return homekitControl(deviceId, controlName, controlValue);
+      case 'matter':   return matterHandler.writeControl(deviceId, controlName, controlValue);
       default:         return Promise.reject(new Error('use-http'));
     }
   }

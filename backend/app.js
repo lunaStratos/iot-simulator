@@ -14,6 +14,8 @@ var opcuaHandler = require('./conn/opcua-device');
 var modbusHandler = require('./conn/modbus-device');
 var dnp3Handler = require('./conn/dnp3-device');
 var iec61850Handler = require('./conn/iec61850-device');
+var homekitHandler = require('./conn/homekit-device');
+var matterHandler = require('./conn/matter-device');
 var batch = require('./config/batch');
 
 var app = express();
@@ -42,6 +44,8 @@ opcuaHandler.connect();
 modbusHandler.connect();
 dnp3Handler.connect();
 iec61850Handler.connect();
+homekitHandler.connect();
+matterHandler.connect();
 batch.batchStart();
 console.info('[APP] Batch scheduler started');
 
